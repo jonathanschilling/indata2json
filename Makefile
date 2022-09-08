@@ -5,7 +5,8 @@ F90:=gfortran
 
 all: indata2json
 clean:
-	rm -rf obj obj_3rd
+	rm -rf obj
+	rm -f json.mod
 	rm -f indata2json
 
 objdir:
