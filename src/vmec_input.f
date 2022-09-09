@@ -614,7 +614,10 @@
 
 !  External field terms.
       lfreeb = .true.
-      extcur = 0
+
+! HACK: Need to fill extcur with cbig in order to figure out which elements
+!       were set by the user in the INDATA namelist.
+!      extcur = 0
       mgrid_file = 'NONE'
 
 !  Plasma current parameters.
@@ -663,7 +666,7 @@
 !  Backwards compatibility.
       raxis = 0
       zaxis = 0
-      
+
       READ (iunit, nml=indata, iostat=istat)
 
       IF (ALL(niter_array == -1)) THEN
