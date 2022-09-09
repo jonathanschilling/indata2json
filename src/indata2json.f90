@@ -1,68 +1,59 @@
 program indata2json
   use json
+  use safe_open_mod
+  use vmec_input
   implicit none
-  integer, parameter :: dp = selected_real_kind(15, 300)
 
+  INTEGER :: numargs, index_dat, index_end, iunit, istat
+  CHARACTER(LEN=120), DIMENSION(1) :: command_arg
+  CHARACTER(LEN=120) :: input_file0
+  CHARACTER(LEN=120) :: input_file
 
-  call open_dbg_out("test.json")
+  ! TimeStep/vmec.f
+  CALL getcarg(1, command_arg(1), numargs)
 
-  print *, "add  int arrays..."
+  IF (numargs .lt. 1) THEN
+    STOP 'Invalid command line'
+  end if
 
-  call add_int("a", 42)
-  call add_int_1d("b", 3,       (/ 1, 2, 3 /) )
-  call add_int_2d("c", 3, 2, (/ (/ 1, 2, 3 /), &
-                                (/ 4, 5, 6 /) /) )
+  input_file0 = command_arg(1)
 
-  call add_int_3d("d", 3, 2, 2, (/ &
-                                (/ (/  1,  2,  3 /), &
-                                   (/  4,  5,  6 /) /), &
-                                (/ (/  7,  8,  9 /), &
-                                   (/ 10, 11, 12 /) /) &
-                                /) )
+  ! TimeStep/runvmec.f
+  index_dat = INDEX(input_file0, 'input.')
+  index_end = LEN_TRIM(input_file0)
+  IF (index_dat .gt. 0) THEN
+     ! found 'input.' in command line argument
+     ! --> likely, this is a whole filename
+     input_extension  = input_file0(index_dat+6:index_end)
+     input_file = TRIM(input_file0)
+  ELSE
+     ! 'input.' not found in command line argument
+     ! --> likely this is only the extension
+     !     (== part of input filename after 'input.')
+     input_extension = input_file0(1:index_end)
+     input_file = 'input.'//TRIM(input_extension)
+  END IF
 
-  call add_int_4d("e", 3, 2, 2, 1, (/ (/ &
-                                (/ (/  1,  2,  3 /), &
-                                   (/  4,  5,  6 /) /), &
-                                (/ (/  7,  8,  9 /), &
-                                   (/ 10, 11, 12 /) /) &
-                                /) /) )
+  ! Input_Output/read_indata.f
+  CALL safe_open (iunit, istat, input_file, 'old', 'formatted')
+  IF (istat .ne. 0) THEN
+     WRITE (6, '(3a,i4)') ' In VMEC, error opening input file: ', &
+       TRIM(input_file), '. Iostat = ', istat
+     stop
+  ENDIF
 
-  call add_int_5d("f", 3, 2, 2, 1, 1, (/ (/ (/ &
-                                (/ (/  1,  2,  3 /), &
-                                   (/  4,  5,  6 /) /), &
-                                (/ (/  7,  8,  9 /), &
-                                   (/ 10, 11, 12 /) /) &
-                                /) /) /) )
+  istat = -1
+  REWIND (iunit)
+  CALL read_indata_namelist (iunit, istat)
+  IF (istat .ne. 0) THEN
+     WRITE (6, '(a,i4)') &
+       ' In VMEC, indata NAMELIST error: iostat = ', istat
+     stop
+  ENDIF
 
-  print *, "add real arrays..."
+!----------------------------------------------------------------------!
 
-  call add_real("A", 42.0_dp)
-  call add_real_1d("B", 3,       (/ 1.0_dp, 2.0_dp, 3.0_dp /) )
-  call add_real_2d("C", 3, 2, (/ (/ 1.0_dp, 2.0_dp, 3.0_dp /), &
-                                 (/ 4.0_dp, 5.0_dp, 6.0_dp /) /) )
-
-  call add_real_3d("D", 3, 2, 2, (/ &
-                                 (/ (/  1.0_dp,  2.0_dp,  3.0_dp /), &
-                                    (/  4.0_dp,  5.0_dp,  6.0_dp /) /), &
-                                 (/ (/  7.0_dp,  8.0_dp,  9.0_dp /), &
-                                    (/ 10.0_dp, 11.0_dp, 12.0_dp /) /) &
-                                 /) )
-
-  call add_real_4d("E", 3, 2, 2, 1, (/ (/ &
-                                    (/ (/  1.0_dp,  2.0_dp,  3.0_dp /), &
-                                       (/  4.0_dp,  5.0_dp,  6.0_dp /) /), &
-                                    (/ (/  7.0_dp,  8.0_dp,  9.0_dp /), &
-                                       (/ 10.0_dp, 11.0_dp, 12.0_dp /) /) &
-                                    /) /) )
-
-  call add_real_5d("F", 3, 2, 2, 1, 1, (/ (/ (/ &
-                                       (/ (/  1.0_dp,  2.0_dp,  3.0_dp /), &
-                                          (/  4.0_dp,  5.0_dp,  6.0_dp /) /), &
-                                       (/ (/  7.0_dp,  8.0_dp,  9.0_dp /), &
-                                          (/ 10.0_dp, 11.0_dp, 12.0_dp /) /) &
-                                       /) /) /) )
-
-  print *, "done"
+  call open_dbg_out(trim(input_extension)//".json")
 
   call close_dbg_out()
 

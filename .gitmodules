@@ -1,3 +1,6 @@
 [submodule "json-fortran"]
 	path = json-fortran
 	url = git@github.com:jonathanschilling/json-fortran.git
+[submodule "LIBSTELL"]
+	path = LIBSTELL
+	url = git@github.com:ORNL-Fusion/LIBSTELL.git
