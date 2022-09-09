@@ -37,8 +37,11 @@ vsvd0.o: LIBSTELL/Sources/Modules/vsvd0.f stel_kinds.o
 vmec_input.o: src/vmec_input.f vparams.o vsvd0.o
 	$(F77) -c src/vmec_input.f -o vmec_input.o
 
-indata2json.o: src/indata2json.f90 json.o getcarg.o safe_open_mod.o vmec_input.o
+nonzerolen.o: src/nonzerolen.f90 stel_kinds.o stel_constants.o
+	$(F77) -c src/nonzerolen.f90 -o nonzerolen.o
+
+indata2json.o: src/indata2json.f90 json.o getcarg.o safe_open_mod.o nonzerolen.o vmec_input.o
 	$(F90) -c src/indata2json.f90 -o indata2json.o
 
 indata2json: indata2json.o
-	$(F90) json.o getcarg.o safe_open_mod.o stel_kinds.o stel_constants.o vparams.o vsvd0.o vmec_input.o indata2json.o -o indata2json
+	$(F90) json.o getcarg.o safe_open_mod.o stel_kinds.o stel_constants.o vparams.o vsvd0.o nonzerolen.o vmec_input.o indata2json.o -o indata2json

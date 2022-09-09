@@ -4,6 +4,7 @@ program indata2json
   use stel_constants, only: zero, one
   use vmec_input
   use vparams, only: nsd, cbig
+  use nzl
   implicit none
 
   INTEGER :: numargs, index_dat, index_end, iunit, istat
@@ -13,6 +14,7 @@ program indata2json
   character(len=1000) :: line
 
   integer :: igrid, multi_ns_grid, nsmin, i
+  integer :: aphiLen, nextcur
 
   ! TimeStep/vmec.f
   CALL getcarg(1, command_arg(1), numargs)
@@ -121,13 +123,15 @@ program indata2json
   ! HACK
   ! Figure out how many entries in extcur were specified
   ! in the INDATA namelist and are now not cbig anymore.
+  nextcur = 0
   do i = 1, nigroup
     if (extcur(i) .ne. cbig) then
-      print *, "extcur(",i,")=",extcur(i)
+!      print *, "extcur(",i,")=",extcur(i)
+      nextcur = nextcur + 1
     end if
   end do
 
-
+  aphiLen = NonZeroLen(aphi,SIZE(aphi))
 
 
 
@@ -162,7 +166,7 @@ program indata2json
   ! solution method tweaking parameters
   call add_real("delt", delt)
   call add_real("tcon0", tcon0)
-  ! aphi
+  call add_real_1d("aphi", aphiLen, aphi)
 
   ! total enclosed toroidal magnetic flux
   call add_real("phiedge", phiedge)
@@ -215,7 +219,7 @@ program indata2json
   ! free-boundary parameters
   call add_logical("lfreeb", lfreeb)
   call add_element("mgrid_file", '"'//trim(mgrid_file)//'"')
-  ! extcur
+  call add_real_1d("extcur", nextcur, extcur(1:nextcur))
   call add_int("nvacskip", nvacskip)
   ! vac_1_2 is only available in NEMEC
 
@@ -228,20 +232,3 @@ program indata2json
     trim(input_extension)//".json", "'"
 
 end ! program indata2json
-
-INTEGER FUNCTION NonZeroLen(array, n)
-  USE stel_kinds, ONLY: dp
-  use stel_constants, only: zero
-  IMPLICIT NONE
-
-  INTEGER, INTENT(IN)      :: n
-  REAL(dp), INTENT(IN)  :: array(n)
-  INTEGER :: k
-
-  DO k = n, 1, -1
-    IF (array(k) .NE. zero) EXIT
-  END DO
-
-  NonZeroLen = k
-
-END ! FUNCTION NonZeroLen
