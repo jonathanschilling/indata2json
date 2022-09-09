@@ -13,8 +13,13 @@ program indata2json
   CHARACTER(LEN=120) :: input_file
   character(len=1000) :: line
 
-  integer :: igrid, multi_ns_grid, nsmin, i
+  integer :: igrid, multi_ns_grid, nsmin, i, n
   integer :: aphiLen, nextcur
+
+  ! lowercase copies to make case-insensitive string comparisons
+  character(len=20) :: pmass_type_lc
+  character(len=20) :: piota_type_lc
+  character(len=20) :: pcurr_type_lc
 
   ! TimeStep/vmec.f
   CALL getcarg(1, command_arg(1), numargs)
@@ -175,10 +180,20 @@ program indata2json
   call add_int("nstep", nstep)
 
   ! mass / pressure profile
-  call add_element("pmass_type", '"'//trim(pmass_type)//'"')
-  ! am
-  ! am_aux_s
-  ! am_aux_f
+  pmass_type_lc = pmass_type
+  CALL tolower(pmass_type_lc)
+  call add_element("pmass_type", '"'//trim(pmass_type_lc)//'"')
+  SELECT CASE(TRIM(pmass_type_lc))
+    CASE ('akima_spline','cubic_spline')
+      n = NonZeroLen(am_aux_s,SIZE(am_aux_s))
+      call add_real_1d("am_aux_s", n, am_aux_s(1:n))
+      n = NonZeroLen(am_aux_f,SIZE(am_aux_f))
+      call add_real_1d("am_aux_f", n, am_aux_f(1:n))
+    CASE DEFAULT
+      n = NonZeroLen(am,SIZE(am))
+      call add_real_1d("am", n, am(0:n-1))
+  END SELECT
+
   call add_real("pres_scale", pres_scale)
   call add_real("gamma", gamma)
   call add_real("spres_ped", spres_ped)
@@ -186,19 +201,44 @@ program indata2json
   ! select constraint on iota or enclosed toroidal current profiles
   call add_int("ncurr", ncurr)
 
-  ! (initial guess for) iota profile
-  call add_element("piota_type", '"'//trim(piota_type)//'"')
-  ! ai
-  ! ai_aux_s
-  ! ai_aux_f
+  if (ncurr .eq. 0) then
+    ! (initial guess for) iota profile
+    piota_type_lc = piota_type
+    CALL tolower(piota_type_lc)
+    call add_element("piota_type", '"'//trim(piota_type_lc)//'"')
+    SELECT CASE(TRIM(piota_type_lc))
+      CASE ('akima_spline','cubic_spline')
+        n = NonZeroLen(ai_aux_s,SIZE(ai_aux_s))
+        call add_real_1d("ai_aux_s", n, ai_aux_s(1:n))
+        n = NonZeroLen(ai_aux_f,SIZE(ai_aux_f))
+        call add_real_1d("ai_aux_f", n, ai_aux_f(1:n))
+      CASE DEFAULT
+        n = NonZeroLen(ai,SIZE(ai))
+        call add_real_1d("ai", n, ai(0:n-1))
+    END SELECT
 
-  ! enclosed toroidal current profile
-  call add_element("pcurr_type", '"'//trim(pcurr_type)//'"')
-  ! ac
-  ! ac_aux_s
-  ! ac_aux_f
-  call add_real("curtor", curtor)
-  call add_real("bloat", bloat)
+  else ! ncurr .eq. 0
+
+    ! enclosed toroidal current profile
+    pcurr_type_lc = pcurr_type
+    CALL tolower(pcurr_type_lc)
+    call add_element("pcurr_type", '"'//trim(pcurr_type_lc)//'"')
+    SELECT CASE(TRIM(pcurr_type_lc))
+      CASE ('akima_spline_ip','akima_spline_i', &
+            'cubic_spline_ip','cubic_spline_i')
+        n = NonZeroLen(ac_aux_s,SIZE(ac_aux_s))
+        call add_real_1d("ac_aux_s", n, ac_aux_s(1:n))
+        n = NonZeroLen(ac_aux_f,SIZE(ac_aux_f))
+        call add_real_1d("ac_aux_f", n, ac_aux_f(1:n))
+      CASE DEFAULT
+        n = NonZeroLen(ac,SIZE(ac))
+        call add_real_1d("ac", n, ac(0:n-1))
+    END SELECT
+
+    call add_real("curtor", curtor)
+    call add_real("bloat", bloat)
+
+  end if ! ncurr .eq. 0
 
   ! initial guess for magnetic axis
   ! raxis_c

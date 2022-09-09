@@ -19,6 +19,9 @@ json.o: json-fortran/json.f90
 getcarg.o: LIBSTELL/Sources/Miscel/getcarg.f90
 	$(F90) -D$(HOST) -c LIBSTELL/Sources/Miscel/getcarg.f90 -o getcarg.o
 
+tolower.o: LIBSTELL/Sources/Miscel/tolower.f90
+	$(F90) -D$(HOST) -c LIBSTELL/Sources/Miscel/tolower.f90 -o tolower.o
+
 safe_open_mod.o: LIBSTELL/Sources/Modules/safe_open_mod.f90
 	$(F90) -c LIBSTELL/Sources/Modules/safe_open_mod.f90 -o safe_open_mod.o
 
@@ -40,8 +43,8 @@ vmec_input.o: src/vmec_input.f vparams.o vsvd0.o
 nonzerolen.o: src/nonzerolen.f90 stel_kinds.o stel_constants.o
 	$(F77) -c src/nonzerolen.f90 -o nonzerolen.o
 
-indata2json.o: src/indata2json.f90 json.o getcarg.o safe_open_mod.o nonzerolen.o vmec_input.o
+indata2json.o: src/indata2json.f90 json.o getcarg.o safe_open_mod.o nonzerolen.o tolower.o vmec_input.o
 	$(F90) -c src/indata2json.f90 -o indata2json.o
 
 indata2json: indata2json.o
-	$(F90) json.o getcarg.o safe_open_mod.o stel_kinds.o stel_constants.o vparams.o vsvd0.o nonzerolen.o vmec_input.o indata2json.o -o indata2json
+	$(F90) json.o getcarg.o safe_open_mod.o stel_kinds.o stel_constants.o vparams.o vsvd0.o nonzerolen.o tolower.o vmec_input.o indata2json.o -o indata2json
