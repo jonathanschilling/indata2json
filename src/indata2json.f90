@@ -3,6 +3,7 @@ program indata2json
   use safe_open_mod
   use stel_constants, only: zero, one
   use vmec_input
+  use vparams, only: nsd, cbig
   implicit none
 
   INTEGER :: numargs, index_dat, index_end, iunit, istat
@@ -10,6 +11,8 @@ program indata2json
   CHARACTER(LEN=120) :: input_file0
   CHARACTER(LEN=120) :: input_file
   character(len=1000) :: line
+
+  integer :: igrid, multi_ns_grid, nsmin, i
 
   ! TimeStep/vmec.f
   CALL getcarg(1, command_arg(1), numargs)
@@ -45,6 +48,11 @@ program indata2json
      stop
   ENDIF
 
+  ! HACK: set extcur to cbig to find out later which entries were set
+  ! In VMEC, the mgrid file is read and this defines
+  ! the number of external coil currents to be expected in extcur.
+  extcur = cbig
+
   istat = -1
   REWIND (iunit)
   CALL read_indata_namelist (iunit, istat)
@@ -61,6 +69,8 @@ program indata2json
      stop
   ENDIF
 
+  close(iunit)
+
   ! additional INDATA fixups from read_indata.f
   IF (lfreeb .and. mgrid_file.eq.'NONE') lfreeb = .false.
   IF (bloat .eq. zero) bloat = one
@@ -72,7 +82,58 @@ program indata2json
   mpol = ABS(mpol)
   ntor = ABS(ntor)
 
-  close(iunit)
+  !
+  !     PARSE NS_ARRAY
+  !
+  nsin = MAX (3, nsin)
+  multi_ns_grid = 1
+  IF (ns_array(1) .eq. 0) THEN                    !Old input style
+      ns_array(1) = MIN(nsin,nsd)
+      multi_ns_grid = 2
+      ns_array(multi_ns_grid) = ns_default        !Run on 31-point mesh
+  ELSE
+      nsmin = 1
+      DO WHILE (ns_array(multi_ns_grid) .ge. nsmin .and. &
+                multi_ns_grid .lt. 100)      ! .ge. previously .gt.
+         nsmin = MAX(nsmin, ns_array(multi_ns_grid))
+         IF (nsmin .le. nsd) THEN
+            multi_ns_grid = multi_ns_grid + 1
+         ELSE                                      !Optimizer, Boozer code overflows otherwise
+            ns_array(multi_ns_grid) = nsd
+            nsmin = nsd
+            PRINT *,' NS_ARRAY ELEMENTS CANNOT EXCEED ',nsd
+            PRINT *,' CHANGING NS_ARRAY(',multi_ns_grid,') to ', nsd
+         END IF
+      END DO
+      multi_ns_grid = multi_ns_grid - 1
+  ENDIF
+  IF (ftol_array(1) .eq. zero) THEN
+     ftol_array(1) = 1.e-8_dp
+     IF (multi_ns_grid .eq. 1) ftol_array(1) = ftol
+     DO igrid = 2, multi_ns_grid
+        ftol_array(igrid) = 1.e-8_dp * (1.e8_dp * ftol)** &
+                            ( REAL(igrid-1,dp)/(multi_ns_grid-1) )
+     END DO
+  ENDIF
+
+  IF (nvacskip .LE. 0) nvacskip = nfp
+
+  ! HACK
+  ! Figure out how many entries in extcur were specified
+  ! in the INDATA namelist and are now not cbig anymore.
+  do i = 1, nigroup
+    if (extcur(i) .ne. cbig) then
+      print *, "extcur(",i,")=",extcur(i)
+    end if
+  end do
+
+
+
+
+
+
+
+
 
   print *, "Successfully parsed VMEC INDATA from '", &
     trim(input_file), "'"
@@ -94,9 +155,9 @@ program indata2json
   call add_int("nzeta", nzeta)
 
   ! multi-grid steps
-  ! ns_array
-  ! ftol_array
-  ! niter_array
+  call add_int_1d("ns_array", multi_ns_grid, ns_array)
+  call add_real_1d("ftol_array", multi_ns_grid, ftol_array)
+  call add_int_1d("niter_array", multi_ns_grid, niter_array)
 
   ! solution method tweaking parameters
   call add_real("delt", delt)
@@ -167,3 +228,20 @@ program indata2json
     trim(input_extension)//".json", "'"
 
 end ! program indata2json
+
+INTEGER FUNCTION NonZeroLen(array, n)
+  USE stel_kinds, ONLY: dp
+  use stel_constants, only: zero
+  IMPLICIT NONE
+
+  INTEGER, INTENT(IN)      :: n
+  REAL(dp), INTENT(IN)  :: array(n)
+  INTEGER :: k
+
+  DO k = n, 1, -1
+    IF (array(k) .NE. zero) EXIT
+  END DO
+
+  NonZeroLen = k
+
+END ! FUNCTION NonZeroLen
