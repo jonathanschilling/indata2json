@@ -94,6 +94,9 @@ program indata2json
   mpol = ABS(mpol)
   ntor = ABS(ntor)
 
+  ! ignore large tcon0 from old-style files
+  tcon0 = MIN(ABS(tcon0), one)
+
   !
   !     PARSE NS_ARRAY
   !
@@ -240,9 +243,9 @@ program indata2json
 
   ! initial guess for magnetic axis
   call add_real_1d("raxis_c", ntor+1, raxis_cc(0:ntor))
-  call add_real_1d("zaxis_s", ntor,   zaxis_cs(1:ntor))
+  call add_real_1d("zaxis_s", ntor+1, zaxis_cs(0:ntor))
   if (lasym) then
-    call add_real_1d("raxis_s", ntor,   raxis_cs(1:ntor))
+    call add_real_1d("raxis_s", ntor+1, raxis_cs(0:ntor))
     call add_real_1d("zaxis_c", ntor+1, zaxis_cc(0:ntor))
   end if ! lasym
 
@@ -361,7 +364,9 @@ program indata2json
   ! free-boundary parameters
   call add_logical("lfreeb", lfreeb)
   call add_element("mgrid_file", '"'//trim(mgrid_file)//'"')
-  call add_real_1d("extcur", nextcur, extcur(1:nextcur))
+  if (nextcur .gt. 0) then
+    call add_real_1d("extcur", nextcur, extcur(1:nextcur))
+  end if
   call add_int("nvacskip", nvacskip)
   ! vac_1_2 is only available in NEMEC
 
