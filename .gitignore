@@ -31,6 +31,5 @@
 *.out
 *.app
 
-obj/
 indata2json
-
+*.json
