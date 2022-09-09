@@ -13,12 +13,18 @@ program indata2json
   CHARACTER(LEN=120) :: input_file
   character(len=1000) :: line
 
-  integer :: igrid, multi_ns_grid, nsmin, i, n, nextcur
+  integer :: igrid, multi_ns_grid, nsmin, i, n, m, nextcur
+  integer :: numCoeff, iRBC, iZBS, iRBS, iZBC
 
   ! lowercase copies to make case-insensitive string comparisons
   character(len=20) :: pmass_type_lc
   character(len=20) :: piota_type_lc
   character(len=20) :: pcurr_type_lc
+
+  character(len=1024), dimension(:), allocatable :: rbc_entries
+  character(len=1024), dimension(:), allocatable :: zbs_entries
+  character(len=1024), dimension(:), allocatable :: rbs_entries
+  character(len=1024), dimension(:), allocatable :: zbc_entries
 
   ! TimeStep/vmec.f
   CALL getcarg(1, command_arg(1), numargs)
@@ -233,20 +239,124 @@ program indata2json
   end if ! ncurr .eq. 0
 
   ! initial guess for magnetic axis
-  ! raxis_c
-  ! zaxis_s
-  ! if (lasym) then
-  !   raxis_s
-  !   zaxis_c
-  ! end if ! lasym
+  call add_real_1d("raxis_c", ntor+1, raxis_cc(0:ntor))
+  call add_real_1d("zaxis_s", ntor,   zaxis_cs(1:ntor))
+  if (lasym) then
+    call add_real_1d("raxis_s", ntor,   raxis_cs(1:ntor))
+    call add_real_1d("zaxis_c", ntor+1, zaxis_cc(0:ntor))
+  end if ! lasym
 
   ! (initial guess for) boundary shape
-  ! rbc
-  ! zbs
-  ! if (lasym) then
-  !   rbs
-  !   zbc
-  ! end if ! lasym
+  numCoeff = mpol * (2 * ntor + 1)
+  allocate(rbc_entries(numCoeff), zbs_entries(numCoeff))
+  if (lasym) then
+    allocate(rbs_entries(numCoeff), zbc_entries(numCoeff))
+  end if ! lasym
+
+  ! find non-zero entries and
+  iRBC = 0
+  iZBS = 0
+  iRBS = 0
+  iZBC = 0
+  do m = 0, mpol-1
+    do n = -ntor, ntor
+      if (abs(rbc(n,m)) .ne. zero) then
+        iRBC = iRBC + 1
+        write(rbc_entries(iRBC), 1000) n, m, rbc(n,m)
+      end if
+      if (abs(zbs(n,m)) .ne. zero) then
+        iZBS = iZBS + 1
+        write(zbs_entries(iZBS), 1000) n, m, zbs(n,m)
+      end if
+      if (lasym) then
+        if (abs(rbs(n,m)) .ne. zero) then
+          iRBS = iRBS + 1
+          write(rbs_entries(iRBS), 1000) n, m, rbs(n,m)
+        end if
+        if (abs(zbc(n,m)) .ne. zero) then
+          iZBC = iZBC + 1
+          write(zbc_entries(iZBC), 1000) n, m, zbc(n,m)
+        end if
+      end if ! lasym
+    end do ! n = -ntor, ntor
+  end do ! m = 0, mpol-1
+1000 format('{"n":',i4,',"m":',i4',"value":',f20.12,'}')
+
+  ! NOTE
+  ! The following code interacts with the intended-private members
+  ! dbg_unit and has_previous from json-fortran.
+
+  ! write all non-zero RBC entries
+  if (iRBC .gt. 0) then
+    if (has_previous) then
+      write(dbg_unit, '(A)', advance='no') ','
+    end if
+    write(dbg_unit, '(A)', advance='no') '"rbc":['
+    do i = 1, iRBC
+      write(dbg_unit, '(A)', advance='no') trim(rbc_entries(i))
+      if (i .lt. iRBC) then
+        write(dbg_unit, '(A)', advance='no') ','
+      end if
+    end do
+    write(dbg_unit, '(A)', advance='no') ']'
+    has_previous = .true.
+  end if
+
+  ! write all non-zero ZBS entries
+  if (iZBS .gt. 0) then
+    if (has_previous) then
+      write(dbg_unit, '(A)', advance='no') ','
+    end if
+    write(dbg_unit, '(A)', advance='no') '"zbs":['
+    do i = 1, iZBS
+      write(dbg_unit, '(A)', advance='no') trim(zbs_entries(i))
+      if (i .lt. iZBS) then
+        write(dbg_unit, '(A)', advance='no') ','
+      end if
+    end do
+    write(dbg_unit, '(A)', advance='no') ']'
+    has_previous = .true.
+  end if
+
+  if (lasym) then
+    ! write all non-zero RBS entries
+    if (iRBS .gt. 0) then
+      if (has_previous) then
+        write(dbg_unit, '(A)', advance='no') ','
+      end if
+      write(dbg_unit, '(A)', advance='no') '"rbs":['
+      do i = 1, iRBS
+        write(dbg_unit, '(A)', advance='no') trim(rbs_entries(i))
+        if (i .lt. iRBS) then
+          write(dbg_unit, '(A)', advance='no') ','
+        end if
+      end do
+      write(dbg_unit, '(A)', advance='no') ']'
+      has_previous = .true.
+    end if
+
+    ! write all non-zero ZBC entries
+    if (iZBC .gt. 0) then
+      if (has_previous) then
+        write(dbg_unit, '(A)', advance='no') ','
+      end if
+      write(dbg_unit, '(A)', advance='no') '"zbc":['
+      do i = 1, iZBC
+        write(dbg_unit, '(A)', advance='no') trim(zbc_entries(i))
+        if (i .lt. iZBC) then
+          write(dbg_unit, '(A)', advance='no') ','
+        end if
+      end do
+      write(dbg_unit, '(A)', advance='no') ']'
+      has_previous = .true.
+    end if
+
+  end if ! lasym
+
+  deallocate(rbc_entries, zbs_entries)
+  if (lasym) then
+    deallocate(rbs_entries, zbc_entries)
+  end if ! lasym
 
   ! free-boundary parameters
   call add_logical("lfreeb", lfreeb)
