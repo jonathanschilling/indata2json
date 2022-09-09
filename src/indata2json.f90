@@ -187,12 +187,24 @@ program indata2json
   SELECT CASE(TRIM(pmass_type_lc))
     CASE ('akima_spline','cubic_spline')
       n = NonZeroLen(am_aux_s,SIZE(am_aux_s))
-      call add_real_1d("am_aux_s", n, am_aux_s(1:n))
+      if (n .gt. 0) then
+        call add_real_1d("am_aux_s", n, am_aux_s(1:n))
+      else
+        call add_real_1d("am_aux_s", 1, (/zero/))
+      end if
       n = NonZeroLen(am_aux_f,SIZE(am_aux_f))
-      call add_real_1d("am_aux_f", n, am_aux_f(1:n))
+      if (n .gt. 0) then
+        call add_real_1d("am_aux_f", n, am_aux_f(1:n))
+      else
+        call add_real_1d("am_aux_f", 1, (/zero/))
+      end if
     CASE DEFAULT
       n = NonZeroLen(am,SIZE(am))
-      call add_real_1d("am", n, am(0:n-1))
+      if (n .gt. 0) then
+        call add_real_1d("am", n, am(0:n-1))
+      else
+        call add_real_1d("am", 1, (/zero/))
+      end if
   END SELECT
 
   call add_real("pres_scale", pres_scale)
@@ -210,12 +222,24 @@ program indata2json
     SELECT CASE(TRIM(piota_type_lc))
       CASE ('akima_spline','cubic_spline')
         n = NonZeroLen(ai_aux_s,SIZE(ai_aux_s))
-        call add_real_1d("ai_aux_s", n, ai_aux_s(1:n))
+        if (n .gt. 0) then
+          call add_real_1d("ai_aux_s", n, ai_aux_s(1:n))
+        else
+          call add_real_1d("ai_aux_s", 1, (/zero/))
+        end if
         n = NonZeroLen(ai_aux_f,SIZE(ai_aux_f))
-        call add_real_1d("ai_aux_f", n, ai_aux_f(1:n))
+        if (n .gt. 0) then
+          call add_real_1d("ai_aux_f", n, ai_aux_f(1:n))
+        else
+          call add_real_1d("ai_aux_f", 1, (/zero/))
+        end if
       CASE DEFAULT
         n = NonZeroLen(ai,SIZE(ai))
-        call add_real_1d("ai", n, ai(0:n-1))
+        if (n .gt. 0) then
+          call add_real_1d("ai", n, ai(0:n-1))
+        else
+          call add_real_1d("ai", 1, (/zero/))
+        end if
     END SELECT
 
   else ! ncurr .eq. 0
@@ -228,12 +252,24 @@ program indata2json
       CASE ('akima_spline_ip','akima_spline_i', &
             'cubic_spline_ip','cubic_spline_i')
         n = NonZeroLen(ac_aux_s,SIZE(ac_aux_s))
-        call add_real_1d("ac_aux_s", n, ac_aux_s(1:n))
+        if (n .gt. 0) then
+          call add_real_1d("ac_aux_s", n, ac_aux_s(1:n))
+        else
+          call add_real_1d("ac_aux_s", 1, (/zero/))
+        end if
         n = NonZeroLen(ac_aux_f,SIZE(ac_aux_f))
-        call add_real_1d("ac_aux_f", n, ac_aux_f(1:n))
+        if (n .gt. 0) then
+          call add_real_1d("ac_aux_f", n, ac_aux_f(1:n))
+        else
+          call add_real_1d("ac_aux_f", 1, (/zero/))
+        end if
       CASE DEFAULT
         n = NonZeroLen(ac,SIZE(ac))
-        call add_real_1d("ac", n, ac(0:n-1))
+        if (n .gt. 0) then
+          call add_real_1d("ac", n, ac(0:n-1))
+        else
+          call add_real_1d("ac", 1, (/zero/))
+        end if
     END SELECT
 
     call add_real("curtor", curtor)
