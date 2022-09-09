@@ -1,6 +1,7 @@
 program indata2json
   use json
   use safe_open_mod
+  use stel_constants, only: zero, one
   use vmec_input
   implicit none
 
@@ -59,6 +60,17 @@ program indata2json
 
      stop
   ENDIF
+
+  ! additional INDATA fixups from read_indata.f
+  IF (lfreeb .and. mgrid_file.eq.'NONE') lfreeb = .false.
+  IF (bloat .eq. zero) bloat = one
+
+  IF ((bloat.ne.one) .and. (ncurr.ne.1)) THEN
+    stop "VMEC INDATA ERROR: NCURR.ne.1 but BLOAT.ne.1."
+  ENDIF
+
+  mpol = ABS(mpol)
+  ntor = ABS(ntor)
 
   close(iunit)
 
@@ -144,7 +156,7 @@ program indata2json
   call add_element("mgrid_file", '"'//trim(mgrid_file)//'"')
   ! extcur
   call add_int("nvacskip", nvacskip)
-  ! vac_1_2 only available in NEMEC
+  ! vac_1_2 is only available in NEMEC
 
   ! flags for internal hacks
   call add_logical("lforbal", lforbal)
