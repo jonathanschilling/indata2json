@@ -13,8 +13,7 @@ program indata2json
   CHARACTER(LEN=120) :: input_file
   character(len=1000) :: line
 
-  integer :: igrid, multi_ns_grid, nsmin, i, n
-  integer :: aphiLen, nextcur
+  integer :: igrid, multi_ns_grid, nsmin, i, n, nextcur
 
   ! lowercase copies to make case-insensitive string comparisons
   character(len=20) :: pmass_type_lc
@@ -136,14 +135,6 @@ program indata2json
     end if
   end do
 
-  aphiLen = NonZeroLen(aphi,SIZE(aphi))
-
-
-
-
-
-
-
   print *, "Successfully parsed VMEC INDATA from '", &
     trim(input_file), "'"
 
@@ -171,7 +162,8 @@ program indata2json
   ! solution method tweaking parameters
   call add_real("delt", delt)
   call add_real("tcon0", tcon0)
-  call add_real_1d("aphi", aphiLen, aphi)
+  n = NonZeroLen(aphi,SIZE(aphi))
+  call add_real_1d("aphi", n, aphi)
 
   ! total enclosed toroidal magnetic flux
   call add_real("phiedge", phiedge)
@@ -246,7 +238,7 @@ program indata2json
   ! if (lasym) then
   !   raxis_s
   !   zaxis_c
-  ! end if
+  ! end if ! lasym
 
   ! (initial guess for) boundary shape
   ! rbc
@@ -254,7 +246,7 @@ program indata2json
   ! if (lasym) then
   !   rbs
   !   zbc
-  ! end if
+  ! end if ! lasym
 
   ! free-boundary parameters
   call add_logical("lfreeb", lfreeb)
