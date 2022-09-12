@@ -1,17 +1,41 @@
 # indata2json
 Converter for VMEC inputs (INDATA namelist) to JSON
 
-This utility is based on the input file reading routines in VMEC, in particular: 
-* [TimeStep/vmec.f](https://github.com/ORNL-Fusion/PARVMEC/blob/master/Sources/TimeStep/vmec.f)
-* [TimeStep/runvmec.f](https://github.com/ORNL-Fusion/PARVMEC/blob/master/Sources/TimeStep/runvmec.f)
-* [Input_Output/readin.f](https://github.com/ORNL-Fusion/PARVMEC/blob/master/Sources/Input_Output/readin.f)
-* [Input_Output/read_indata.f](https://github.com/ORNL-Fusion/PARVMEC/blob/master/Sources/Input_Output/read_indata.f)
+Default values for the input parameters are set in `read_indata_namelist()` in [`vmec_input.f`](https://github.com/ORNL-Fusion/LIBSTELL/blob/master/Sources/Modules/vmec_input.f).
 
-Default values for the input parameters are set in `read_indata_namelist()` in `LIBSTELL/.../Modules/vmec_input.f`.
+Prior to reading the namelist, the `extcur` array is filled with a large constant (`cbig` in vparams).
+If `extcur` entries are specified in the namelist, they overwrite the unreasonably large values in `extcur`,
+which is checked for when determining the size of the `extcur` array to export to the JSON file.
+This way, the `mgrid` file does not need to be read to determine the size of the `extcur` array.
+In order to implement this logic, I needed to slightly adjust `vmec_input.f`.
+The modified version is included in this repository at [`src/vmec_input.f`](src/vmec_input.f)
+
 Furthermore, after reading the namelist, a few fixups are done there as well:
 * If all entries in `niter_array` stayed at their default values of -1,
   they are all set to the value of `niter` (which defaults to 100).
 * `raxis` --> `raxis_cc` and `zaxis` --> `zaxis_cs` for all non-zero entries in `raxis`,`zaxis`
+* `lfreeb` is initialized to `true` in `read_indata_namelist()`, but re-set to `false` if `mgrid_file` remains at the default value `NONE`.
+* `bloat` is set to 1 if it was set to `0`, which is invalid.
+* if running in constrained-iota mode (`ncurr` .ne. 1), `bloat` is checked to equal 1
+* `mpol` and `ntor` are set to their absolute values; negative counts of Fourier harmonics make no sense.
+* the absolute value of `tcon0` is taken and it is coerced to a maximum value of 1
+* The entries in `ns_array` are checked to be monotonically increasing
+* if `nvacskip` was not set, it is initialized to `nfp`
+For further details, refer to the actual code (linked below).
+
+Further documentation of the input parameters can be found below
+or in the following places:
+* [STELLOPT Wiki: VMEC Input Namelist (v8.47)](https://princetonuniversity.github.io/STELLOPT/VMEC%20Input%20Namelist%20(v8.47))
+* [V3FIT: VMEC Equilibrium](https://ornl-fusion.github.io/stellinstall/vmec_equilibrium_sec.html)
+* [vmec-internals](https://github.com/jonathanschilling/vmec-internals)
+* [Rotating Ellipse Equilibrium Calculation](https://hiddensymmetries.princeton.edu/sites/g/files/toruqf1546/files/paul_-_rotating_ellipse_equilibrium_calculation.pdf)
+
+This utility is based on the input file reading routines in VMEC, in particular: 
+* [LIBSTELL/.../Modules/vmec_input.f](https://github.com/ORNL-Fusion/LIBSTELL/blob/master/Sources/Modules/vmec_input.f)
+* [PARVMEC/.../TimeStep/vmec.f](https://github.com/ORNL-Fusion/PARVMEC/blob/master/Sources/TimeStep/vmec.f)
+* [PARVMEC/.../TimeStep/runvmec.f](https://github.com/ORNL-Fusion/PARVMEC/blob/master/Sources/TimeStep/runvmec.f)
+* [PARVMEC/.../Input_Output/readin.f](https://github.com/ORNL-Fusion/PARVMEC/blob/master/Sources/Input_Output/readin.f)
+* [PARVMEC/.../Input_Output/read_indata.f](https://github.com/ORNL-Fusion/PARVMEC/blob/master/Sources/Input_Output/read_indata.f)
 
 ## Clone with submodules
 This repository uses two Git submodules (`LIBSTELL` and `json-fortran`)
