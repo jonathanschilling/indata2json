@@ -1,5 +1,5 @@
 # indata2json
-Converter for VMEC inputs (INDATA namelist) to JSON
+Converter for VMEC inputs (INDATA namelist) to JSON.
 
 Default values for the input parameters are set in `read_indata_namelist()` in [`vmec_input.f`](https://github.com/ORNL-Fusion/LIBSTELL/blob/master/Sources/Modules/vmec_input.f).
 
@@ -222,3 +222,6 @@ which are extracted from the `INDATA` namelist and exported to the `json` file.
 
   `lforbal`   =T, use non-variational forces to ensure <EQUIF> = 0;
               =F, use variational form of forces, <EQUIF> ~ 0
+
+
+If you have read this far, please consider leaving a star for this repo :-)
