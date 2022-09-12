@@ -69,7 +69,7 @@ and you should be good to go.
 The executable then is `indata2json` and it can be called as follows:
 
 ```bash
-./indata2json demo_inputs/input.w7x_ref_167_12_12`
+./indata2json demo_inputs/input.w7x_ref_167_12_12
 ```
 
 which in turn creates a file `w7x_ref_167_12_12.json` in the current working directory.
