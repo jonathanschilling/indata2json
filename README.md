@@ -150,28 +150,28 @@ which are extracted from the `INDATA` namelist and exported to the `json` file.
               
 ### (initial guess for) boundary shape
   
-  `rbc`:   boundary coefficients of COS(m*theta-n*zeta) for R [m]; stellarator-symmetric
+  `rbc`   boundary coefficients of COS(m*theta-n*zeta) for R [m]; stellarator-symmetric
 
-  `zbs`:   boundary coefficients of SIN(m*theta-n*zeta) for Z [m]; stellarator-symmetric
+  `zbs`   boundary coefficients of SIN(m*theta-n*zeta) for Z [m]; stellarator-symmetric
 
-  `rbs`:   boundary coefficients of SIN(m*theta-n*zeta) for R [m]; non-stellarator-symmetric
+  `rbs`   boundary coefficients of SIN(m*theta-n*zeta) for R [m]; non-stellarator-symmetric
 
-  `zbc`:   boundary coefficients of COS(m*theta-n*zeta) for Z [m]; non-stellarator-symmetric
+  `zbc`   boundary coefficients of COS(m*theta-n*zeta) for Z [m]; non-stellarator-symmetric
 
 ### free-boundary parameters
 
-  `lfreeb`:   =T, run in free boundary mode if mgrid_file exists
+  `lfreeb`   =T, run in free boundary mode if mgrid_file exists
 
-  `mgrid_file`:   full path for vacuum Green's function data
+  `mgrid_file`   full path for vacuum Green's function data
 
-  `extcur`:   array of currents in each external current group. Used to
-              multiply Green''s function for fields and loops read in from
-              MGRID file. Should use real current units (A).
+  `extcur`   array of currents in each external current group. Used to
+             multiply Green''s function for fields and loops read in from
+             MGRID file. Should use real current units (A).
               
-  `nvacskip`:   number of iteration steps between accurate calculation of vacuum
-                response; use fast interpolation scheme in between
+  `nvacskip`   number of iteration steps between accurate calculation of vacuum
+               response; use fast interpolation scheme in between
 
 ### flags for internal hacks
 
-  `lforbal`:   =T, use non-variational forces to ensure <EQUIF> = 0;
-               =F, use variational form of forces, <EQUIF> ~ 0
+  `lforbal`   =T, use non-variational forces to ensure <EQUIF> = 0;
+              =F, use variational form of forces, <EQUIF> ~ 0
