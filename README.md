@@ -10,6 +10,11 @@ This way, the `mgrid` file does not need to be read to determine the size of the
 In order to implement this logic, I needed to slightly adjust `vmec_input.f`.
 The modified version is included in this repository at [`src/vmec_input.f`](src/vmec_input.f)
 
+This behavior can be disabled by specifying `--truncate-extcur` as a separate command line argument.
+Then, only the part of the `extcur` array from the first element to the last non-zero element is exported to JSON.
+This is more similar to the original VMEC behavior,
+but you must take care yourself to check if you specified all required coil currents.
+
 Furthermore, after reading the namelist, a few fixups are done there as well:
 * If all entries in `niter_array` stayed at their default values of -1,
   they are all set to the value of `niter` (which defaults to 100).
