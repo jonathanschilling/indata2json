@@ -7,11 +7,18 @@ program indata2json
   use nzl
   implicit none
 
+  !> maximum number of command line arguments
+  integer, parameter :: argcmax = 10
+
   INTEGER :: numargs, index_dat, index_end, iunit, istat
-  CHARACTER(LEN=120), DIMENSION(1) :: command_arg
+  CHARACTER(LEN=120), DIMENSION(argcmax) :: command_arg
   CHARACTER(LEN=120) :: input_file0
   CHARACTER(LEN=120) :: input_file
   character(len=1000) :: line
+
+  !> flag to allow truncation of extcur ftol_array;
+  !> enabled with "--truncate-extcur" on the command line
+  logical :: ltruncate_extcur
 
   integer :: igrid, multi_ns_grid, nsmin, i, n, m, nextcur
   integer :: numCoeff, iRBC, iZBS, iRBS, iZBC
@@ -26,14 +33,33 @@ program indata2json
   character(len=1024), dimension(:), allocatable :: rbs_entries
   character(len=1024), dimension(:), allocatable :: zbc_entries
 
+  ltruncate_extcur = .false.
+
   ! TimeStep/vmec.f
   CALL getcarg(1, command_arg(1), numargs)
+  if (numargs .gt. 1) then
+    if (numargs .gt. argcmax) then
+      print *, "too many argument on command line; do not specify more than", &
+        argcmax
+      stop
+    else
+      do i = 2, numargs
+        CALL getcarg(i, command_arg(i), numargs)
+      end do ! i = 2, numargs
+    end if ! numargs .gt. argcmax
+  end if ! numargs .gt. 1
 
   IF (numargs .lt. 1) THEN
     STOP 'Invalid command line'
   end if
 
-  input_file0 = command_arg(1)
+  do i = 1, numargs
+    if (trim(command_arg(i)) .eq. "--truncate-extcur") then
+      ltruncate_extcur = .true.
+    else
+      input_file0 = command_arg(i)
+    end if
+  end do ! i = 1, numargs
 
   ! TimeStep/runvmec.f
   index_dat = INDEX(input_file0, 'input.')
@@ -60,10 +86,16 @@ program indata2json
      stop
   ENDIF
 
-  ! HACK: set extcur to cbig to find out later which entries were set
-  ! In VMEC, the mgrid file is read and this defines
-  ! the number of external coil currents to be expected in extcur.
-  extcur = cbig
+  if (ltruncate_extcur) then
+    ! "--truncate-extcur" was specified on the command line
+    ! --> output only extcur entries from first to last non-zero entry
+    extcur = zero
+  else
+    ! HACK: set extcur to cbig to find out later which entries were set
+    ! In VMEC, the mgrid file is read and this defines
+    ! the number of external coil currents to be expected in extcur.
+    extcur = cbig
+  end if ! ltruncate_extcur
 
   istat = -1
   REWIND (iunit)
@@ -133,19 +165,31 @@ program indata2json
 
   IF (nvacskip .LE. 0) nvacskip = nfp
 
-  ! HACK
-  ! Figure out how many entries in extcur were specified
-  ! in the INDATA namelist and are now not cbig anymore.
-  nextcur = 0
-  do i = 1, nigroup
-    if (extcur(i) .ne. cbig) then
-!      print *, "extcur(",i,")=",extcur(i)
-      nextcur = nextcur + 1
-    else
-      ! fix #1: exit the loop if cbig was found for first time
-      exit
-    end if
-  end do
+  if (ltruncate_extcur) then
+    ! "--truncate-extcur" was specified on the command line
+    ! --> output only extcur entries from first to last non-zero entry
+    nextcur = 1
+    do i = nigroup, 1, -1
+      if (extcur(i) .ne. zero) then
+        nextcur = i
+        exit
+      end if ! extcur(i) .ne. zero
+    end do ! i = 1, nigroup
+  else
+    ! HACK
+    ! Figure out how many entries in extcur were specified
+    ! in the INDATA namelist and are now not cbig anymore.
+    nextcur = 0
+    do i = 1, nigroup
+      if (extcur(i) .ne. cbig) then
+!        print *, "extcur(",i,")=",extcur(i)
+        nextcur = nextcur + 1
+      else
+        ! fix #1: exit the loop if cbig was found for first time
+        exit
+      end if
+    end do
+  end if ! ltruncate_extcur
 
   print *, "Successfully parsed VMEC INDATA from '", &
     trim(input_file), "'"
