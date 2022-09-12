@@ -141,6 +141,9 @@ program indata2json
     if (extcur(i) .ne. cbig) then
 !      print *, "extcur(",i,")=",extcur(i)
       nextcur = nextcur + 1
+    else
+      ! fix #1: exit the loop if cbig was found for first time
+      exit
     end if
   end do
 
