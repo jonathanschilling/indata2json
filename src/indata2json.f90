@@ -33,6 +33,9 @@ program indata2json
   character(len=1024), dimension(:), allocatable :: rbs_entries
   character(len=1024), dimension(:), allocatable :: zbc_entries
 
+  ! enable semi-pretty-printing JSON data
+  json_pretty_print = .true.
+
   ltruncate_extcur = .false.
 
   ! TimeStep/vmec.f
