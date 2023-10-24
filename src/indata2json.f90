@@ -327,6 +327,18 @@ program indata2json
 
   end if ! ncurr .eq. 0
 
+  ! free-boundary parameters
+  call add_logical("lfreeb", lfreeb)
+  call add_element("mgrid_file", '"'//trim(mgrid_file)//'"')
+  if (nextcur .gt. 0) then
+    call add_real_1d("extcur", nextcur, extcur(1:nextcur))
+  end if
+  call add_int("nvacskip", nvacskip)
+  ! vac_1_2 is only available in NEMEC
+
+  ! flags for internal hacks
+  call add_logical("lforbal", lforbal)
+
   ! initial guess for magnetic axis
   call add_real_1d("raxis_c", ntor+1, raxis_cc(0:ntor))
   call add_real_1d("zaxis_s", ntor+1, zaxis_cs(0:ntor))
@@ -378,13 +390,25 @@ program indata2json
   ! write all non-zero RBC entries
   if (iRBC .gt. 0) then
     if (has_previous) then
-      write(dbg_unit, '(A)', advance='no') ','
+      if (json_pretty_print) then
+        write(dbg_unit, '(A)') ','
+      else
+        write(dbg_unit, '(A)', advance='no') ','
+      end if
     end if
-    write(dbg_unit, '(A)', advance='no') '"rbc":['
+    if (json_pretty_print) then
+      write(dbg_unit, '(A)') '"rbc":['
+    else
+      write(dbg_unit, '(A)', advance='no') '"rbc":['
+    end if
     do i = 1, iRBC
       write(dbg_unit, '(A)', advance='no') trim(rbc_entries(i))
       if (i .lt. iRBC) then
-        write(dbg_unit, '(A)', advance='no') ','
+        if (json_pretty_print) then
+          write(dbg_unit, '(A)') ','
+        else
+          write(dbg_unit, '(A)', advance='no') ','
+        end if
       end if
     end do
     write(dbg_unit, '(A)', advance='no') ']'
@@ -394,13 +418,25 @@ program indata2json
   ! write all non-zero ZBS entries
   if (iZBS .gt. 0) then
     if (has_previous) then
-      write(dbg_unit, '(A)', advance='no') ','
+      if (json_pretty_print) then
+        write(dbg_unit, '(A)') ','
+      else
+        write(dbg_unit, '(A)', advance='no') ','
+      end if
     end if
-    write(dbg_unit, '(A)', advance='no') '"zbs":['
+    if (json_pretty_print) then
+      write(dbg_unit, '(A)') '"zbs":['
+    else
+      write(dbg_unit, '(A)', advance='no') '"zbs":['
+    end if
     do i = 1, iZBS
       write(dbg_unit, '(A)', advance='no') trim(zbs_entries(i))
       if (i .lt. iZBS) then
-        write(dbg_unit, '(A)', advance='no') ','
+        if (json_pretty_print) then
+          write(dbg_unit, '(A)') ','
+        else
+          write(dbg_unit, '(A)', advance='no') ','
+        end if
       end if
     end do
     write(dbg_unit, '(A)', advance='no') ']'
@@ -411,13 +447,25 @@ program indata2json
     ! write all non-zero RBS entries
     if (iRBS .gt. 0) then
       if (has_previous) then
-        write(dbg_unit, '(A)', advance='no') ','
+        if (json_pretty_print) then
+          write(dbg_unit, '(A)') ','
+        else
+          write(dbg_unit, '(A)', advance='no') ','
+        end if
       end if
-      write(dbg_unit, '(A)', advance='no') '"rbs":['
+      if (json_pretty_print) then
+        write(dbg_unit, '(A)') '"rbs":['
+      else
+        write(dbg_unit, '(A)', advance='no') '"rbs":['
+      end if
       do i = 1, iRBS
         write(dbg_unit, '(A)', advance='no') trim(rbs_entries(i))
         if (i .lt. iRBS) then
-          write(dbg_unit, '(A)', advance='no') ','
+          if (json_pretty_print) then
+            write(dbg_unit, '(A)') ','
+          else
+            write(dbg_unit, '(A)', advance='no') ','
+          end if
         end if
       end do
       write(dbg_unit, '(A)', advance='no') ']'
@@ -427,13 +475,25 @@ program indata2json
     ! write all non-zero ZBC entries
     if (iZBC .gt. 0) then
       if (has_previous) then
-        write(dbg_unit, '(A)', advance='no') ','
+        if (json_pretty_print) then
+          write(dbg_unit, '(A)') ','
+        else
+          write(dbg_unit, '(A)', advance='no') ','
+        end if
       end if
-      write(dbg_unit, '(A)', advance='no') '"zbc":['
+      if (json_pretty_print) then
+        write(dbg_unit, '(A)') '"zbc":['
+      else
+        write(dbg_unit, '(A)', advance='no') '"zbc":['
+      end if
       do i = 1, iZBC
         write(dbg_unit, '(A)', advance='no') trim(zbc_entries(i))
         if (i .lt. iZBC) then
-          write(dbg_unit, '(A)', advance='no') ','
+          if (json_pretty_print) then
+            write(dbg_unit, '(A)') ','
+          else
+            write(dbg_unit, '(A)', advance='no') ','
+          end if
         end if
       end do
       write(dbg_unit, '(A)', advance='no') ']'
@@ -446,18 +506,6 @@ program indata2json
   if (lasym) then
     deallocate(rbs_entries, zbc_entries)
   end if ! lasym
-
-  ! free-boundary parameters
-  call add_logical("lfreeb", lfreeb)
-  call add_element("mgrid_file", '"'//trim(mgrid_file)//'"')
-  if (nextcur .gt. 0) then
-    call add_real_1d("extcur", nextcur, extcur(1:nextcur))
-  end if
-  call add_int("nvacskip", nvacskip)
-  ! vac_1_2 is only available in NEMEC
-
-  ! flags for internal hacks
-  call add_logical("lforbal", lforbal)
 
   call close_dbg_out()
 
