@@ -10,10 +10,17 @@ This way, the `mgrid` file does not need to be read to determine the size of the
 In order to implement this logic, I needed to slightly adjust `vmec_input.f`.
 The modified version is included in this repository at [`src/vmec_input.f`](src/vmec_input.f)
 
-This behavior can be disabled by specifying `--truncate-extcur` as a separate command line argument.
+This behavior can be disabled by specifying `--truncate_extcur` as a separate command line argument.
 Then, only the part of the `extcur` array from the first element to the last non-zero element is exported to JSON.
 This is more similar to the original VMEC behavior,
 but you must take care yourself to check if you specified all required coil currents.
+
+A subfolder can be specified, which will be put in front of the `mgrid_file` variable.
+Specify this on the command line as `--mgrid_folder some_subfolder` and,
+for a `mgrid_file = 'mgrid_w7x.nc'` entry in the `INDATA` namelist,
+the following will be printed to the JSON output:
+`"mgrid_file":"some_subfolder/mgrid_w7x.nc"`.
+Note that a slash (`/`) is hardcoded for now (sorry Windows users).
 
 Furthermore, after reading the namelist, a few fixups are done there as well:
 * If all entries in `niter_array` stayed at their default values of -1,
