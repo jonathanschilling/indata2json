@@ -20,6 +20,9 @@ program indata2json
   !> enabled with "--truncate-extcur" on the command line
   logical :: ltruncate_extcur
 
+  logical :: lmgrid_folder, skip_next
+  character(len=1024) :: mgrid_folder
+
   integer :: igrid, multi_ns_grid, nsmin, i, n, m, nextcur
   integer :: numCoeff, iRBC, iZBS, iRBS, iZBC
 
@@ -37,6 +40,7 @@ program indata2json
   json_pretty_print = .true.
 
   ltruncate_extcur = .false.
+  lmgrid_folder = .false.
 
   ! TimeStep/vmec.f
   CALL getcarg(1, command_arg(1), numargs)
@@ -56,12 +60,28 @@ program indata2json
     STOP 'Invalid command line'
   end if
 
+  skip_next = .false.
   do i = 1, numargs
-    if (trim(command_arg(i)) .eq. "--truncate-extcur") then
+
+    if (skip_next) then
+      skip_next = .false.
+      continue
+    end if
+
+    if (trim(command_arg(i)) .eq. "--truncate_extcur") then
       ltruncate_extcur = .true.
+    else if (trim(command_arg(i)) .eq. "--mgrid_folder") then
+      ! must make sure that one further arg is present
+      if (i .eq. numargs) then
+        stop "must specify mgrid folder if --mgrid_folder is used"
+      end if
+      lmgrid_folder = .true.
+      mgrid_folder = command_arg(i + 1)
+      skip_next = .true.
     else
       input_file0 = command_arg(i)
     end if
+
   end do ! i = 1, numargs
 
   ! TimeStep/runvmec.f
@@ -329,7 +349,13 @@ program indata2json
 
   ! free-boundary parameters
   call add_logical("lfreeb", lfreeb)
-  call add_element("mgrid_file", '"'//trim(mgrid_file)//'"')
+
+  if (lmgrid_folder) then
+    call add_element("mgrid_file", &
+      '"'//trim(mgrid_folder)//"/"//trim(mgrid_file)//'"')
+  else
+    call add_element("mgrid_file", '"'//trim(mgrid_file)//'"')
+  end if
   if (nextcur .gt. 0) then
     call add_real_1d("extcur", nextcur, extcur(1:nextcur))
   end if
