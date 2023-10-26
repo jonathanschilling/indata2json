@@ -349,8 +349,9 @@ program indata2json
 
   ! free-boundary parameters
   call add_logical("lfreeb", lfreeb)
-
-  if (lmgrid_folder) then
+  if (lfreeb .and. lmgrid_folder) then
+    ! Only prepend mgrid_folder if mgrid_file is not 'NONE',
+    ! which is the default for lfreeb .eq. .false. .
     call add_element("mgrid_file", &
       '"'//trim(mgrid_folder)//"/"//trim(mgrid_file)//'"')
   else
