@@ -250,7 +250,8 @@
       INTEGER, PARAMETER :: long_name = 200
 !>  Maximum number of spline knots.
       INTEGER, PARAMETER :: max_profile = 20
-
+!> maximum number of iter2 values at which to dump debugging output
+      integer, parameter :: num_iter2_to_dump = 20
 
 !*******************************************************************************
 !  VMEC input module variables.
@@ -485,49 +486,49 @@
       LOGICAL                                   :: loptim
       LOGICAL                                   :: lpofr           !!Obsolete
 
-      !> maximum number of iterations for which to dump data
-      integer :: max_dump                 =    2
+      !> values of iter2 for which to dump data
+      integer, dimension(num_iter2_to_dump) :: iter2_to_dump
 
       !> individual flags to control debug output loosely related to
       !> similarly-named routines (checkpoints along iterations)
-      logical :: dump_add_fluxes          = .false.
-      logical :: dump_metric              = .false.
-      logical :: dump_volume              = .false.
-      logical :: dump_bcontrav            = .false.
-      logical :: dump_bcov                = .false.
-      logical :: dump_lambda_forces       = .false.
-      logical :: dump_bcov_full           = .false.
-      logical :: dump_precondn            = .false.
-      logical :: dump_forceNorms_tcon     = .false.
-      logical :: dump_lulv_comb           = .false.
-      logical :: dump_calc_fbal           = .false.
-      logical :: dump_evolve              = .false.
-      logical :: dump_fixaray             = .false.
-      logical :: dump_spectral_constraint = .false.
-      logical :: dump_forces              = .false.
-      logical :: dump_totzsp_input        = .false.
-      logical :: dump_funct3d_geometry    = .false.
-      logical :: dump_constraint_force    = .false.
-      logical :: dump_guess_axis          = .false.
-      logical :: dump_interp              = .false.
-      logical :: dump_jacobian            = .false.
-      logical :: dump_lamcal              = .false.
-      logical :: dump_profil1d            = .false.
-      logical :: dump_profil3d            = .false.
-      logical :: dump_readin_boundary     = .false.
-      logical :: dump_phys_gc             = .false.
-      logical :: dump_fsq                 = .false.
-      logical :: dump_scale_m1            = .false.
-      logical :: dump_scalfor_out         = .false.
-      logical :: dump_fsq1                = .false.
-      logical :: dump_scalfor_R           = .false.
-      logical :: dump_scalfor_Z           = .false.
-      logical :: dump_symforce            = .false.
-      logical :: dump_tomnsps             = .false.
-      logical :: dump_tomnspa             = .false.
-      logical :: dump_multigrid_result    = .false.
-      logical :: dump_rbsq                = .false.
-      logical :: dump_printout            = .false.
+      logical :: dump_add_fluxes            = .false.
+      logical :: dump_metric                = .false.
+      logical :: dump_volume                = .false.
+      logical :: dump_bcontrav              = .false.
+      logical :: dump_bcov                  = .false.
+      logical :: dump_lambda_forces         = .false.
+      logical :: dump_bcov_full             = .false.
+      logical :: dump_precondn              = .false.
+      logical :: dump_forceNorms_tcon       = .false.
+      logical :: dump_lulv_comb             = .false.
+      logical :: dump_calc_fbal             = .false.
+      logical :: dump_evolve                = .false.
+      logical :: dump_fixaray               = .false.
+      logical :: dump_spectral_constraint   = .false.
+      logical :: dump_forces                = .false.
+      logical :: dump_totzsp_input          = .false.
+      logical :: dump_funct3d_geometry      = .false.
+      logical :: dump_constraint_force      = .false.
+      logical :: dump_guess_axis            = .false.
+      logical :: dump_interp                = .false.
+      logical :: dump_jacobian              = .false.
+      logical :: dump_lamcal                = .false.
+      logical :: dump_profil1d              = .false.
+      logical :: dump_profil3d              = .false.
+      logical :: dump_readin_boundary       = .false.
+      logical :: dump_phys_gc               = .false.
+      logical :: dump_fsq                   = .false.
+      logical :: dump_scale_m1              = .false.
+      logical :: dump_scalfor_out           = .false.
+      logical :: dump_fsq1                  = .false.
+      logical :: dump_scalfor_R             = .false.
+      logical :: dump_scalfor_Z             = .false.
+      logical :: dump_symforce              = .false.
+      logical :: dump_tomnsps               = .false.
+      logical :: dump_tomnspa               = .false.
+      logical :: dump_multigrid_result      = .false.
+      logical :: dump_rbsq                  = .false.
+      logical :: dump_printout              = .false.
 
       ! fileout
       logical :: dump_bcovar_fileout        = .false.
@@ -544,16 +545,29 @@
       logical :: dump_freeb_data            = .false.
 
       ! debugging output flags for NESTOR
-      logical :: dump_vac1n_vacuum  = .false.
-      logical :: dump_vac1n_precal  = .false.
-      logical :: dump_vac1n_surface = .false.
-      logical :: dump_vac1n_bextern = .false.
-      logical :: dump_vac1n_analyt  = .false.
-      logical :: dump_vac1n_greenf  = .false.
-      logical :: dump_vac1n_fourp   = .false.
-      logical :: dump_vac1n_fouri   = .false.
-      logical :: dump_vac1n_solver  = .false.
-      logical :: dump_vac1n_bsqvac  = .false.
+      logical :: dump_vac1n_vacuum          = .false.
+      logical :: dump_vac1n_precal          = .false.
+      logical :: dump_vac1n_surface         = .false.
+      logical :: dump_vac1n_bextern         = .false.
+      logical :: dump_vac1n_analyt          = .false.
+      logical :: dump_vac1n_greenf          = .false.
+      logical :: dump_vac1n_fourp           = .false.
+      logical :: dump_vac1n_fouri           = .false.
+      logical :: dump_vac1n_solver          = .false.
+      logical :: dump_vac1n_bsqvac          = .false.
+
+      logical :: dump_vac2_vacuum           = .false.
+      logical :: dump_vac2_precal           = .false.
+      logical :: dump_vac2_surface          = .false.
+      logical :: dump_vac2_bexmat           = .false.
+      logical :: dump_vac2_matrix           = .false.
+      logical :: dump_vac2_foumat_unreg     = .false.
+      logical :: dump_vac2_analin           = .false.
+      logical :: dump_vac2_analyt           = .false.
+      logical :: dump_vac2_foumat           = .false.
+      logical :: dump_vac2_linsys           = .false.
+      logical :: dump_vac2_linslv           = .false.
+      logical :: dump_vac2_bsqvac           = .false.
 
       CHARACTER(len=120) :: arg1
 
@@ -602,7 +616,7 @@
      &   sigma_delphid, tensi2, fpolyi, nflxs, indxflx, dsiobt,                &
      &   sigma_flux, nbfld, indxbfld, bbc, sigma_b, lpofr, lrecon,             &
      &   ledge_dump, lspectrum_dump, loptim,                                   &
-     &   max_dump                  ,                                           & ! dbgout
+     &   iter2_to_dump             ,                                           & ! dbgout
      &   dump_add_fluxes           ,                                           &
      &   dump_metric               ,                                           &
      &   dump_volume               ,                                           &
@@ -662,7 +676,19 @@
      &   dump_vac1n_fourp          ,                                           &
      &   dump_vac1n_fouri          ,                                           &
      &   dump_vac1n_solver         ,                                           &
-     &   dump_vac1n_bsqvac
+     &   dump_vac1n_bsqvac         ,                                           &
+     &   dump_vac2_vacuum          ,                                           & ! NESTOR vac2
+     &   dump_vac2_precal          ,                                           &
+     &   dump_vac2_surface         ,                                           &
+     &   dump_vac2_bexmat          ,                                           &
+     &   dump_vac2_matrix          ,                                           &
+     &   dump_vac2_foumat_unreg    ,                                           &
+     &   dump_vac2_analin          ,                                           &
+     &   dump_vac2_analyt          ,                                           &
+     &   dump_vac2_foumat          ,                                           &
+     &   dump_vac2_linsys          ,                                           &
+     &   dump_vac2_linslv          ,                                           &
+     &   dump_vac2_bsqvac
 
       NAMELIST /mseprofile/ mseprof
 
