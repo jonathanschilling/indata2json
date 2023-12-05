@@ -511,6 +511,7 @@
       logical :: dump_constraint_force      = .false.
       logical :: dump_guess_axis            = .false.
       logical :: dump_interp                = .false.
+      logical :: dump_con0                  = .false.
       logical :: dump_jacobian              = .false.
       logical :: dump_lamcal                = .false.
       logical :: dump_profil1d              = .false.
@@ -637,6 +638,7 @@
      &   dump_constraint_force     ,                                           &
      &   dump_guess_axis           ,                                           &
      &   dump_interp               ,                                           &
+     &   dump_con0                 ,                                           &
      &   dump_jacobian             ,                                           &
      &   dump_lamcal               ,                                           &
      &   dump_profil1d             ,                                           &
