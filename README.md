@@ -33,6 +33,7 @@ Furthermore, after reading the namelist, a few fixups are done there as well:
 * the absolute value of `tcon0` is taken and it is coerced to a maximum value of 1
 * The entries in `ns_array` are checked to be monotonically increasing
 * if `nvacskip` was not set, it is initialized to `nfp`
+
 For further details, refer to the actual code (linked below).
 
 Further documentation of the input parameters can be found below
