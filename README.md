@@ -122,13 +122,16 @@ which are extracted from the `INDATA` namelist and exported to the `json` file.
   
   `aphi` radial flux zoning profile coefficients
 
-### total enclosed toroidal magnetic flux
+  `lforbal`   =T, use non-variational forces to ensure <EQUIF> = 0;
+              =F, use variational form of forces, <EQUIF> ~ 0
 
-  `phiedge` total enclosed toroidal magnetic flux in Vs == Wb
-  
 ### printout interval
 
   `nstep` printout interval for convergence information
+  
+### total enclosed toroidal magnetic flux
+
+  `phiedge` total enclosed toroidal magnetic flux in Vs == Wb
   
 ### mass / pressure profile
 
@@ -193,6 +196,19 @@ which are extracted from the `INDATA` namelist and exported to the `json` file.
   
   `bloat` bloating factor (for constrained toroidal current)
   
+### free-boundary parameters
+
+  `lfreeb`   =T, run in free boundary mode if mgrid_file exists
+
+  `mgrid_file`   full path for vacuum Green's function data
+
+  `extcur`   array of currents in each external current group. Used to
+             multiply Green''s function for fields and loops read in from
+             MGRID file. Should use real current units (A).
+              
+  `nvacskip`   number of iteration steps between accurate calculation of vacuum
+               response; use fast interpolation scheme in between
+
 ### initial guess for magnetic axis
 
   `raxis_cc` magnetic axis coefficients for R ~ cos(n*v); stellarator-symmetric
@@ -212,24 +228,5 @@ which are extracted from the `INDATA` namelist and exported to the `json` file.
   `rbs`   boundary coefficients of SIN(m*theta-n*zeta) for R [m]; non-stellarator-symmetric
 
   `zbc`   boundary coefficients of COS(m*theta-n*zeta) for Z [m]; non-stellarator-symmetric
-
-### free-boundary parameters
-
-  `lfreeb`   =T, run in free boundary mode if mgrid_file exists
-
-  `mgrid_file`   full path for vacuum Green's function data
-
-  `extcur`   array of currents in each external current group. Used to
-             multiply Green''s function for fields and loops read in from
-             MGRID file. Should use real current units (A).
-              
-  `nvacskip`   number of iteration steps between accurate calculation of vacuum
-               response; use fast interpolation scheme in between
-
-### flags for internal hacks
-
-  `lforbal`   =T, use non-variational forces to ensure <EQUIF> = 0;
-              =F, use variational form of forces, <EQUIF> ~ 0
-
 
 If you have read this far, please consider leaving a star for this repo :-)
