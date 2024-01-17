@@ -36,7 +36,7 @@ def floatArray2nml(array):
     ret = ""
     n = len(array)
     for i,v in enumerate(array):
-        ret += "%.20e"%(v,)
+        ret += "% .20e"%(v,)
         if i < n - 1:
             ret += ", "
     return ret
@@ -45,6 +45,8 @@ with open(json_input_file, "r") as fIn, \
      open(nml_output_file, "w") as fOut:
 
     json_input = json.load(fIn)
+
+    # ------------------
 
     fOut.write("&INDATA\n")
 
@@ -88,10 +90,10 @@ with open(json_input_file, "r") as fIn, \
     fOut.write("\n  ! solution method tweaking parameters\n")
 
     if "delt" in json_input:
-        fOut.write("  delt = %.20e\n"%(json_input["delt"],))
+        fOut.write("  delt = % .20e\n"%(json_input["delt"],))
 
     if "tcon0" in json_input:
-        fOut.write("  tcon0 = %.20e\n"%(json_input["tcon0"],))
+        fOut.write("  tcon0 = % .20e\n"%(json_input["tcon0"],))
 
     if "aphi" in json_input and len(json_input["aphi"]) > 0:
         fOut.write("  aphi = %s\n"%(floatArray2nml(json_input["aphi"]),))
@@ -111,7 +113,7 @@ with open(json_input_file, "r") as fIn, \
     fOut.write("\n  ! total enclosed toroidal magnetic flux\n")
 
     if "phiedge" in json_input:
-        fOut.write("  phiedge = %.20e\n"%(json_input["phiedge"],))
+        fOut.write("  phiedge = % .20e\n"%(json_input["phiedge"],))
 
     # ------------------
 
@@ -130,13 +132,13 @@ with open(json_input_file, "r") as fIn, \
         fOut.write("  am_aux_f = %s\n"%(floatArray2nml(json_input["am_aux_f"]),))
 
     if "pres_scale" in json_input:
-        fOut.write("  pres_scale = %.20e\n"%(json_input["pres_scale"],))
+        fOut.write("  pres_scale = % .20e\n"%(json_input["pres_scale"],))
 
     if "gamma" in json_input:
-        fOut.write("  gamma = %.20e\n"%(json_input["gamma"],))
+        fOut.write("  gamma = % .20e\n"%(json_input["gamma"],))
 
     if "spres_ped" in json_input:
-        fOut.write("  spres_ped = %.20e\n"%(json_input["spres_ped"],))
+        fOut.write("  spres_ped = % .20e\n"%(json_input["spres_ped"],))
 
     # ------------------
 
@@ -178,10 +180,10 @@ with open(json_input_file, "r") as fIn, \
         fOut.write("  ac_aux_f = %s\n"%(floatArray2nml(json_input["ac_aux_f"]),))
 
     if "curtor" in json_input:
-        fOut.write("  curtor = %.20e\n"%(json_input["curtor"],))
+        fOut.write("  curtor = % .20e\n"%(json_input["curtor"],))
 
     if "bloat" in json_input:
-        fOut.write("  bloat = %.20e\n"%(json_input["bloat"],))
+        fOut.write("  bloat = % .20e\n"%(json_input["bloat"],))
 
     # ------------------
 
@@ -203,16 +205,50 @@ with open(json_input_file, "r") as fIn, \
 
     fOut.write("\n  ! initial guess for magnetic axis\n")
 
+    if "raxis_cc" in json_input and len(json_input["raxis_cc"]) > 0:
+        fOut.write("  raxis_cc = %s\n"%(floatArray2nml(json_input["raxis_cc"]),))
 
+    if "zaxis_cs" in json_input and len(json_input["zaxis_cs"]) > 0:
+        fOut.write("  zaxis_cs = %s\n"%(floatArray2nml(json_input["zaxis_cs"]),))
 
+    if "raxis_cs" in json_input and len(json_input["raxis_cs"]) > 0:
+        fOut.write("  raxis_cs = %s\n"%(floatArray2nml(json_input["raxis_cs"]),))
 
-
+    if "zaxis_cc" in json_input and len(json_input["zaxis_cc"]) > 0:
+        fOut.write("  zaxis_cc = %s\n"%(floatArray2nml(json_input["zaxis_cc"]),))
 
     # ------------------
 
     fOut.write("\n  ! (initial guess for) boundary shape\n")
 
+    if "rbc" in json_input and len(json_input["rbc"]) > 0:
+        for rbc_entry in json_input["rbc"]:
+            m = rbc_entry["m"]
+            n = rbc_entry["n"]
+            value = rbc_entry["value"]
+            fOut.write("  rbc(% d, %d) = % .20e\n"%(n, m, value))
 
+    if "zbs" in json_input and len(json_input["zbs"]) > 0:
+        for zbs_entry in json_input["zbs"]:
+            m = zbs_entry["m"]
+            n = zbs_entry["n"]
+            value = zbs_entry["value"]
+            fOut.write("  zbs(% d, %d) = % .20e\n"%(n, m, value))
 
+    if "rbs" in json_input and len(json_input["rbs"]) > 0:
+        for rbs_entry in json_input["rbs"]:
+            m = rbs_entry["m"]
+            n = rbs_entry["n"]
+            value = rbs_entry["value"]
+            fOut.write("  rbs(% d, %d) = % .20e\n"%(n, m, value))
+
+    if "zbc" in json_input and len(json_input["zbc"]) > 0:
+        for zbc_entry in json_input["zbc"]:
+            m = zbc_entry["m"]
+            n = zbc_entry["n"]
+            value = zbc_entry["value"]
+            fOut.write("  zbc(% d, %d) = % .20e\n"%(n, m, value))
+
+    # ------------------
 
     fOut.write("\n/\n&END\n")
