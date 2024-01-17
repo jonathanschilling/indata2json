@@ -1,0 +1,218 @@
+#!/usr/bin/env python
+
+import sys
+import os
+import json
+
+if len(sys.argv) < 2:
+    print("usage: json2indata input.json")
+
+json_input_file = sys.argv[1]
+
+if not json_input_file.endswith(".json"):
+    raise RuntimeError("input filename must end with '.json'")
+
+# Convert the name and relative path of the JSON input file
+# into filename format expected by Fortran VMEC.
+json_basename = os.path.basename(json_input_file)
+json_dirname = os.path.dirname(json_input_file)
+nml_basename = "input." + json_basename[:-5]
+nml_output_file = os.path.join(json_dirname, nml_basename)
+print(json_input_file + " --> " + nml_output_file)
+
+def bool2nml(variable):
+    return ".true." if variable else ".false."
+
+def intArray2nml(array):
+    ret = ""
+    n = len(array)
+    for i,v in enumerate(array):
+        ret += "%d"%(v,)
+        if i < n - 1:
+            ret += ", "
+    return ret
+
+def floatArray2nml(array):
+    ret = ""
+    n = len(array)
+    for i,v in enumerate(array):
+        ret += "%.20e"%(v,)
+        if i < n - 1:
+            ret += ", "
+    return ret
+
+with open(json_input_file, "r") as fIn, \
+     open(nml_output_file, "w") as fOut:
+
+    json_input = json.load(fIn)
+
+    fOut.write("&INDATA\n")
+
+    # ------------------
+
+    fOut.write("\n  ! numerical resolution, symmetry assumption\n")
+
+    if "lasym" in json_input:
+        fOut.write("  lasym = %s\n"%(bool2nml(json_input["lasym"]),))
+
+    if "nfp" in json_input:
+        fOut.write("  nfp = %d\n"%(json_input["nfp"],))
+
+    if "mpol" in json_input:
+        fOut.write("  mpol = %d\n"%(json_input["mpol"],))
+
+    if "ntor" in json_input:
+        fOut.write("  ntor = %d\n"%(json_input["ntor"],))
+
+    if "ntheta" in json_input:
+        fOut.write("  ntheta = %d\n"%(json_input["ntheta"],))
+
+    if "nzeta" in json_input:
+        fOut.write("  nzeta = %d\n"%(json_input["nzeta"],))
+
+    # ------------------
+
+    fOut.write("\n  ! multi-grid steps\n")
+
+    if "ns_array" in json_input and len(json_input["ns_array"]) > 0:
+        fOut.write("  ns_array = %s\n"%(intArray2nml(json_input["ns_array"]),))
+
+    if "ftol_array" in json_input and len(json_input["ftol_array"]) > 0:
+        fOut.write("  ftol_array = %s\n"%(floatArray2nml(json_input["ftol_array"]),))
+
+    if "niter_array" in json_input and len(json_input["niter_array"]) > 0:
+        fOut.write("  niter_array = %s\n"%(intArray2nml(json_input["niter_array"]),))
+
+    # ------------------
+
+    fOut.write("\n  ! solution method tweaking parameters\n")
+
+    if "delt" in json_input:
+        fOut.write("  delt = %.20e\n"%(json_input["delt"],))
+
+    if "tcon0" in json_input:
+        fOut.write("  tcon0 = %.20e\n"%(json_input["tcon0"],))
+
+    if "aphi" in json_input and len(json_input["aphi"]) > 0:
+        fOut.write("  aphi = %s\n"%(floatArray2nml(json_input["aphi"]),))
+
+    if "lforbal" in json_input:
+        fOut.write("  lforbal = %s\n"%(bool2nml(json_input["lforbal"]),))
+
+    # ------------------
+
+    fOut.write("\n  ! printout interval\n")
+
+    if "nstep" in json_input:
+        fOut.write("  nstep = %d\n"%(json_input["nstep"],))
+
+    # ------------------
+
+    fOut.write("\n  ! total enclosed toroidal magnetic flux\n")
+
+    if "phiedge" in json_input:
+        fOut.write("  phiedge = %.20e\n"%(json_input["phiedge"],))
+
+    # ------------------
+
+    fOut.write("\n  ! mass / pressure profile\n")
+
+    if "pmass_type" in json_input:
+        fOut.write("  pmass_type = '%s'\n"%(json_input["pmass_type"],))
+
+    if "am" in json_input and len(json_input["am"]) > 0:
+        fOut.write("  am = %s\n"%(floatArray2nml(json_input["am"]),))
+
+    if "am_aux_s" in json_input and len(json_input["am_aux_s"]) > 0:
+        fOut.write("  am_aux_s = %s\n"%(floatArray2nml(json_input["am_aux_s"]),))
+
+    if "am_aux_f" in json_input and len(json_input["am_aux_f"]) > 0:
+        fOut.write("  am_aux_f = %s\n"%(floatArray2nml(json_input["am_aux_f"]),))
+
+    if "pres_scale" in json_input:
+        fOut.write("  pres_scale = %.20e\n"%(json_input["pres_scale"],))
+
+    if "gamma" in json_input:
+        fOut.write("  gamma = %.20e\n"%(json_input["gamma"],))
+
+    if "spres_ped" in json_input:
+        fOut.write("  spres_ped = %.20e\n"%(json_input["spres_ped"],))
+
+    # ------------------
+
+    fOut.write("\n  ! select constraint on iota or enclosed toroidal current profiles\n")
+
+    if "ncurr" in json_input:
+        fOut.write("  ncurr = %d\n"%(json_input["ncurr"],))
+
+    # ------------------
+
+    fOut.write("\n  ! (initial guess for) iota profile\n")
+
+    if "piota_type" in json_input:
+        fOut.write("  piota_type = '%s'\n"%(json_input["piota_type"],))
+
+    if "ai" in json_input and len(json_input["ai"]) > 0:
+        fOut.write("  ai = %s\n"%(floatArray2nml(json_input["ai"]),))
+
+    if "ai_aux_s" in json_input and len(json_input["ai_aux_s"]) > 0:
+        fOut.write("  ai_aux_s = %s\n"%(floatArray2nml(json_input["ai_aux_s"]),))
+
+    if "ai_aux_f" in json_input and len(json_input["ai_aux_f"]) > 0:
+        fOut.write("  ai_aux_f = %s\n"%(floatArray2nml(json_input["ai_aux_f"]),))
+
+    # ------------------
+
+    fOut.write("\n  ! enclosed toroidal current profile\n")
+
+    if "pcurr_type" in json_input:
+        fOut.write("  pcurr_type = '%s'\n"%(json_input["pcurr_type"],))
+
+    if "ac" in json_input and len(json_input["ac"]) > 0:
+        fOut.write("  ac = %s\n"%(floatArray2nml(json_input["ac"]),))
+
+    if "ac_aux_s" in json_input and len(json_input["ac_aux_s"]) > 0:
+        fOut.write("  ac_aux_s = %s\n"%(floatArray2nml(json_input["ac_aux_s"]),))
+
+    if "ac_aux_f" in json_input and len(json_input["ac_aux_f"]) > 0:
+        fOut.write("  ac_aux_f = %s\n"%(floatArray2nml(json_input["ac_aux_f"]),))
+
+    if "curtor" in json_input:
+        fOut.write("  curtor = %.20e\n"%(json_input["curtor"],))
+
+    if "bloat" in json_input:
+        fOut.write("  bloat = %.20e\n"%(json_input["bloat"],))
+
+    # ------------------
+
+    fOut.write("\n  ! free-boundary parameters\n")
+
+    if "lfreeb" in json_input:
+        fOut.write("  lfreeb = %s\n"%(bool2nml(json_input["lfreeb"]),))
+
+    if "mgrid_file" in json_input:
+        fOut.write("  mgrid_file = '%s'\n"%(json_input["mgrid_file"],))
+
+    if "extcur" in json_input and len(json_input["extcur"]) > 0:
+        fOut.write("  extcur = %s\n"%(floatArray2nml(json_input["extcur"]),))
+
+    if "nvacskip" in json_input:
+        fOut.write("  nvacskip = %d\n"%(json_input["nvacskip"],))
+
+    # ------------------
+
+    fOut.write("\n  ! initial guess for magnetic axis\n")
+
+
+
+
+
+
+    # ------------------
+
+    fOut.write("\n  ! (initial guess for) boundary shape\n")
+
+
+
+
+    fOut.write("\n/\n&END\n")
