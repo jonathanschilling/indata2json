@@ -1,6 +1,6 @@
 
 F90:=gfortran -cpp -static -static-libgfortran
-F77:=gfortran --std=legacy -cpp -static -static-libgfortran
+F77:=gfortran -cpp -static -static-libgfortran --std=legacy 
 
 # Specify the type of machine this is compiled for.
 # Look into LIBSTELL/Sources/Miscel/getcarg.f90 for available options.
