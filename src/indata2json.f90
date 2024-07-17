@@ -11,9 +11,9 @@ program indata2json
   integer, parameter :: argcmax = 10
 
   INTEGER :: numargs, index_dat, index_end, iunit, istat
-  CHARACTER(LEN=120), DIMENSION(argcmax) :: command_arg
-  CHARACTER(LEN=120) :: input_file0
-  CHARACTER(LEN=120) :: input_file
+  CHARACTER(LEN=4096), DIMENSION(argcmax) :: command_arg
+  CHARACTER(LEN=4096) :: input_file0
+  CHARACTER(LEN=4096) :: input_file
   character(len=1000) :: line
 
   !> flag to allow truncation of extcur ftol_array;
