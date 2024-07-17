@@ -46,9 +46,8 @@ program indata2json
   CALL getcarg(1, command_arg(1), numargs)
   if (numargs .gt. 1) then
     if (numargs .gt. argcmax) then
-      print *, "too many argument on command line; do not specify more than", &
-        argcmax
-      stop
+      WRITE(0, *) "too many argument on command line; do not specify more than", argcmax
+      STOP 1
     else
       do i = 2, numargs
         CALL getcarg(i, command_arg(i), numargs)
@@ -57,7 +56,8 @@ program indata2json
   end if ! numargs .gt. 1
 
   IF (numargs .lt. 1) THEN
-    STOP 'Invalid command line'
+    WRITE(0, *) "Invalid command line"
+    STOP 2
   end if
 
   skip_next = .false.
@@ -73,7 +73,8 @@ program indata2json
     else if (trim(command_arg(i)) .eq. "--mgrid_folder") then
       ! must make sure that one further arg is present
       if (i .eq. numargs) then
-        stop "must specify mgrid folder if --mgrid_folder is used"
+        WRITE(0, *) "must specify mgrid folder if --mgrid_folder is used"
+        STOP 3
       end if
       lmgrid_folder = .true.
       mgrid_folder = command_arg(i + 1)
@@ -104,9 +105,9 @@ program indata2json
   iunit = 10 ! unit 10 should be available; why not?
   CALL safe_open (iunit, istat, input_file, 'old', 'formatted')
   IF (istat .ne. 0) THEN
-     WRITE (6, '(3a,i4)') ' In VMEC, error opening input file: ', &
+     WRITE (0, '(3a,i4)') ' In indata2json, error opening input file: ', &
        TRIM(input_file), '. Iostat = ', istat
-     stop
+     STOP 4
   ENDIF
 
   if (ltruncate_extcur) then
@@ -124,16 +125,16 @@ program indata2json
   REWIND (iunit)
   CALL read_indata_namelist (iunit, istat)
   IF (istat .ne. 0) THEN
-     WRITE (6, '(a,i4)') &
-       ' In VMEC, indata NAMELIST error: iostat = ', istat
+     WRITE (0, '(a,i4)') &
+       ' In indata2json, indata NAMELIST error: iostat = ', istat
 
      ! In case of an error, "backspace" the file (== move one line up)
      ! to get the line on which the parsing error occured:
      backspace(iunit)
      read(iunit,fmt='(A)') line
-     write(*,'(A)') 'Invalid line in INDATA namelist: '//trim(line)
+     WRITE(0,'(A)') 'Invalid line in INDATA namelist: '//trim(line)
 
-     stop
+     STOP 5
   ENDIF
 
   close(iunit)
@@ -143,7 +144,8 @@ program indata2json
   IF (bloat .eq. zero) bloat = one
 
   IF ((bloat.ne.one) .and. (ncurr.ne.1)) THEN
-    stop "VMEC INDATA ERROR: NCURR.ne.1 but BLOAT.ne.1."
+    WRITE(0, *) "VMEC INDATA ERROR: NCURR.ne.1 but BLOAT.ne.1."
+    STOP 6
   ENDIF
 
   mpol = ABS(mpol)
