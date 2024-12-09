@@ -1,0 +1,19 @@
+name: Main
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Software
+        run: apt-get -y update && apt-get -q -y install build-essential gfortran
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        run: make
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: indata2json
