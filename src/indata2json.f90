@@ -216,8 +216,8 @@ program indata2json
     end do
   end if ! ltruncate_extcur
 
-  print *, "Successfully parsed VMEC INDATA from '", &
-    trim(input_file), "'"
+  ! print *, "Successfully parsed VMEC INDATA from '", &
+  !   trim(input_file), "'"
 
   !---------------------------------------------------!
   ! Here, reading of the VMEC INDATA namelist is done !
@@ -538,7 +538,7 @@ program indata2json
 
   call close_dbg_out()
 
-  print *, "INDATA contents written to '", &
-    trim(input_extension)//".json", "'"
+  ! print *, "INDATA contents written to '", &
+  !   trim(input_extension)//".json", "'"
 
 end ! program indata2json
