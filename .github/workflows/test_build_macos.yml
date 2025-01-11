@@ -8,7 +8,7 @@ jobs:
     steps:
       - name: Install Software
         run: |
-          which gfortran
+          which gfortran || true
           brew install --verbose --debug gcc
           brew reinstall gcc
       - name: Checkout
