@@ -7,7 +7,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Install Software
-        run: sudo brew install gfortran
+        run: brew install gfortran
       - name: Checkout
         uses: actions/checkout@v4
         with:
