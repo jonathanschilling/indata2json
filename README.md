@@ -88,6 +88,14 @@ The executable then is `indata2json` and it can be called as follows:
 
 which in turn creates a file `w7x_ref_167_12_12.json` in the current working directory.
 
+### CMake
+
+Alternatively, you can build the package via CMake:
+```bash
+cmake .
+make
+```
+
 ## Input File Contents
 
 The following lists the input parameters for VMEC
