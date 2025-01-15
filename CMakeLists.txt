@@ -9,14 +9,14 @@ project(indata2json
 #set(CMAKE_Fortran_COMPILER "gfortran")  # Do we need this? Would it compile with a different compiler?
 message(STATUS "Detected platform: ${CMAKE_SYSTEM_NAME}")
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(FLAGS_PLATFORM "-DLINUX")
+    set(FLAGS_PLATFORM "-DLINUX -static -static-libgfortran")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin") # macOS
-    set(FLAGS_PLATFORM "-DMACOSX")
+    set(FLAGS_PLATFORM "-DMACOSX -lgfortran")
 else()
     message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}. Only Linux and macOS are supported.")
 endif()
 
-set(CMAKE_Fortran_FLAGS "-cpp -static -static-libgfortran ${FLAGS_PLATFORM}")
+set(CMAKE_Fortran_FLAGS "-cpp ${FLAGS_PLATFORM}")
 set(CMAKE_Fortran_FLAG_F77 "-std=legacy")
 
 
