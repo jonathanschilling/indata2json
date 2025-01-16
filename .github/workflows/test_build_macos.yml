@@ -7,7 +7,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Install Software
-        run: brew install gfortran
+        run: brew reinstall gcc # brings gfortran with it
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -15,6 +15,7 @@ jobs:
       - name: Print Compiler identification
         run: |
           brew ls --verbose gcc | grep gfortran
+          find /opt/homebrew -name "gfortran"
           echo $PATH
           which gfortran
           gfortran --version
