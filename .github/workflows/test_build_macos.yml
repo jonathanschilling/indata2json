@@ -12,6 +12,11 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
+      - name: Print Compiler identification
+        run: |
+          brew ls --verbose gcc | grep gfortran
+          which gfortran
+          gfortran --version
       - name: Build
         run: |
           cmake -B build
