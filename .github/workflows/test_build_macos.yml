@@ -1,0 +1,18 @@
+name: Test Build on MacOS
+
+on: push
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Install Software
+        run: brew install gfortran
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+      - name: Build
+        run: |
+          cmake -B build
+          cmake --build build
