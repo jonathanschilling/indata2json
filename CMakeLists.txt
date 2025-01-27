@@ -6,19 +6,18 @@ project(indata2json
     DESCRIPTION "Converter for VMEC inputs (INDATA namelist) to JSON")
 
 # Set the Fortran compilers and flags
-#set(CMAKE_Fortran_COMPILER "gfortran")  # Do we need this? Would it compile with a different compiler?
 message(STATUS "Detected platform: ${CMAKE_SYSTEM_NAME}")
+# needed for, e.g., LIBSTELL/Sources/Miscel/getcarg.f90
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set(FLAGS_PLATFORM "-DLINUX -static -static-libgfortran")
+    set(FLAGS_PLATFORM "-DLINUX")
 elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin") # macOS
-    set(FLAGS_PLATFORM "-DMACOSX -lgfortran")
+    set(FLAGS_PLATFORM "-DMACOSX")
 else()
     message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}. Only Linux and macOS are supported.")
 endif()
 
-set(CMAKE_Fortran_FLAGS "-cpp ${FLAGS_PLATFORM}")
+set(CMAKE_Fortran_FLAGS "-cpp -lgfortran ${FLAGS_PLATFORM}")
 set(CMAKE_Fortran_FLAG_F77 "-std=legacy")
-
 
 # Define the sources
 set(SOURCES
