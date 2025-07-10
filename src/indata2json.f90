@@ -410,7 +410,7 @@ program indata2json
       end if ! lasym
     end do ! n = -ntor, ntor
   end do ! m = 0, mpol-1
-1000 format('{"n":',i4,',"m":',i4',"value":',e25.18,'}')
+1000 format('{"n":',i4,',"m":',i4,',"value":',e25.18,'}')
 
   ! NOTE
   ! The following code interacts with the intended-private members
