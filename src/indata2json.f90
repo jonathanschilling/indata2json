@@ -258,16 +258,12 @@ program indata2json
   call add_element("pmass_type", '"'//trim(pmass_type_lc)//'"')
   SELECT CASE(TRIM(pmass_type_lc))
     CASE ('akima_spline','cubic_spline')
-      n = NonZeroLen(am_aux_s,SIZE(am_aux_s))
+      n = NonNegLen(am_aux_s,SIZE(am_aux_s))
       if (n .gt. 0) then
         call add_real_1d("am_aux_s", n, am_aux_s(1:n))
-      else
-        call add_real_1d("am_aux_s", 1, (/zero/))
-      end if
-      n = NonZeroLen(am_aux_f,SIZE(am_aux_f))
-      if (n .gt. 0) then
         call add_real_1d("am_aux_f", n, am_aux_f(1:n))
       else
+        call add_real_1d("am_aux_s", 1, (/zero/))
         call add_real_1d("am_aux_f", 1, (/zero/))
       end if
     CASE DEFAULT
@@ -293,16 +289,12 @@ program indata2json
     call add_element("piota_type", '"'//trim(piota_type_lc)//'"')
     SELECT CASE(TRIM(piota_type_lc))
       CASE ('akima_spline','cubic_spline')
-        n = NonZeroLen(ai_aux_s,SIZE(ai_aux_s))
+        n = NonNegLen(ai_aux_s,SIZE(ai_aux_s))
         if (n .gt. 0) then
           call add_real_1d("ai_aux_s", n, ai_aux_s(1:n))
-        else
-          call add_real_1d("ai_aux_s", 1, (/zero/))
-        end if
-        n = NonZeroLen(ai_aux_f,SIZE(ai_aux_f))
-        if (n .gt. 0) then
           call add_real_1d("ai_aux_f", n, ai_aux_f(1:n))
         else
+          call add_real_1d("ai_aux_s", 1, (/zero/))
           call add_real_1d("ai_aux_f", 1, (/zero/))
         end if
       CASE DEFAULT
@@ -323,16 +315,12 @@ program indata2json
     SELECT CASE(TRIM(pcurr_type_lc))
       CASE ('akima_spline_ip','akima_spline_i', &
             'cubic_spline_ip','cubic_spline_i')
-        n = NonZeroLen(ac_aux_s,SIZE(ac_aux_s))
+        n = NonNegLen(ac_aux_s,SIZE(ac_aux_s))
         if (n .gt. 0) then
           call add_real_1d("ac_aux_s", n, ac_aux_s(1:n))
-        else
-          call add_real_1d("ac_aux_s", 1, (/zero/))
-        end if
-        n = NonZeroLen(ac_aux_f,SIZE(ac_aux_f))
-        if (n .gt. 0) then
           call add_real_1d("ac_aux_f", n, ac_aux_f(1:n))
         else
+          call add_real_1d("ac_aux_s", 1, (/zero/))
           call add_real_1d("ac_aux_f", 1, (/zero/))
         end if
       CASE DEFAULT
