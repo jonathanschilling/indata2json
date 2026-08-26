@@ -784,21 +784,21 @@
       ncurr = 0
       pcurr_type = 'power_series'
       ac = 0
-      ac_aux_s = 0
+      ac_aux_s = -1
       ac_aux_f = 0
       bloat = 1
 
 !  Rotational transform parameters.
       piota_type = 'power_series'
       ai = 0
-      ai_aux_s = 0
+      ai_aux_s = -1
       ai_aux_f = 0
 
 !  Pressure profile parameters.
       pres_scale = 1
       pmass_type = 'power_series'
       am = 0
-      am_aux_s = 0
+      am_aux_s = -1
       am_aux_f = 0
       spres_ped = 1
 
