@@ -257,7 +257,7 @@ program indata2json
   CALL tolower(pmass_type_lc)
   call add_element("pmass_type", '"'//trim(pmass_type_lc)//'"')
   SELECT CASE(TRIM(pmass_type_lc))
-    CASE ('akima_spline','cubic_spline')
+    CASE ('akima_spline','cubic_spline','line_segment')
       n = NonNegLen(am_aux_s,SIZE(am_aux_s))
       if (n .gt. 0) then
         call add_real_1d("am_aux_s", n, am_aux_s(1:n))
@@ -288,7 +288,7 @@ program indata2json
     CALL tolower(piota_type_lc)
     call add_element("piota_type", '"'//trim(piota_type_lc)//'"')
     SELECT CASE(TRIM(piota_type_lc))
-      CASE ('akima_spline','cubic_spline')
+      CASE ('akima_spline','cubic_spline','line_segment')
         n = NonNegLen(ai_aux_s,SIZE(ai_aux_s))
         if (n .gt. 0) then
           call add_real_1d("ai_aux_s", n, ai_aux_s(1:n))
@@ -314,7 +314,8 @@ program indata2json
     call add_element("pcurr_type", '"'//trim(pcurr_type_lc)//'"')
     SELECT CASE(TRIM(pcurr_type_lc))
       CASE ('akima_spline_ip','akima_spline_i', &
-            'cubic_spline_ip','cubic_spline_i')
+            'cubic_spline_ip','cubic_spline_i', &
+            'line_segment_ip','line_segment_i')
         n = NonNegLen(ac_aux_s,SIZE(ac_aux_s))
         if (n .gt. 0) then
           call add_real_1d("ac_aux_s", n, ac_aux_s(1:n))
