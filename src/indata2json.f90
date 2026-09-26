@@ -240,6 +240,10 @@ program indata2json
   call add_real_1d("ftol_array", multi_ns_grid, ftol_array)
   call add_int_1d("niter_array", multi_ns_grid, niter_array)
 
+  ! early termination of a poorly converging multi-grid sequence
+  call add_logical("lgiveup", lgiveup)
+  call add_real("fgiveup", fgiveup)
+
   ! solution method tweaking parameters
   call add_real("delt", delt)
   call add_real("tcon0", tcon0)
