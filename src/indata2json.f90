@@ -10,7 +10,7 @@ program indata2json
   !> maximum number of command line arguments
   integer, parameter :: argcmax = 10
 
-  INTEGER :: numargs, index_dat, index_end, iunit, istat
+  INTEGER :: numargs, index_dat, index_end, iunit, istat, iunit_filtered
   CHARACTER(LEN=4096), DIMENSION(argcmax) :: command_arg
   CHARACTER(LEN=4096) :: input_file0
   CHARACTER(LEN=4096) :: input_file
@@ -124,6 +124,14 @@ program indata2json
   istat = -1
   REWIND (iunit)
   CALL read_indata_namelist (iunit, istat)
+  IF (istat .ne. 0) THEN
+     ! retry without assignments to variables that are not in the INDATA namelist
+     OPEN (newunit=iunit_filtered, status='scratch', form='formatted')
+     CALL drop_unknown_variables(iunit, iunit_filtered)
+     close(iunit)
+     iunit = iunit_filtered
+     CALL read_indata_namelist (iunit, istat)
+  END IF
   IF (istat .ne. 0) THEN
      WRITE (0, '(a,i4)') &
        ' In indata2json, indata NAMELIST error: iostat = ', istat
@@ -528,5 +536,45 @@ program indata2json
 
   ! print *, "INDATA contents written to '", &
   !   trim(input_extension)//".json", "'"
+
+contains
+
+  !> Copy iunit_in to iunit_out, dropping lines that assign a variable which is not
+  !> in the INDATA namelist, together with the continuation lines of its value.
+  subroutine drop_unknown_variables(iunit_in, iunit_out)
+    integer, intent(in) :: iunit_in, iunit_out
+    character(len=*), parameter :: name_chars = &
+      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
+    character(len=4096) :: buf, probe
+    character(len=:), allocatable :: name
+    logical :: dropping
+    integer :: ios, ieq
+
+    dropping = .false.
+    rewind(iunit_in)
+    do
+      read(iunit_in, '(a)', iostat=ios) buf
+      if (ios .ne. 0) exit
+      ieq = index(buf, '=')
+      if (ieq .gt. 1) then
+        name = trim(adjustl(buf(1:ieq-1)))
+        if (index(name, '(') .gt. 0) name = trim(name(1:index(name, '(')-1))
+      else
+        name = ''
+      end if
+      if (len(name) .gt. 0 .and. verify(name, name_chars) .eq. 0) then
+        ! assignment: probe the name with a null value, which leaves variables unchanged
+        write(probe, '(a)') '&indata '//name//'= /'
+        read(probe, nml=indata, iostat=ios)
+        dropping = (ios .ne. 0)
+        if (dropping) write(0, '(a)') 'Warning: ignoring unknown INDATA variable '//name
+      else if (scan(adjustl(buf), '/&') .eq. 1) then
+        ! end of the namelist group
+        dropping = .false.
+      end if
+      if (.not. dropping) write(iunit_out, '(a)') trim(buf)
+    end do
+    rewind(iunit_out)
+  end subroutine drop_unknown_variables
 
 end ! program indata2json
