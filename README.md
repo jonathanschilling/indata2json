@@ -23,8 +23,10 @@ the following will be printed to the JSON output:
 `"mgrid_file":"some_subfolder/mgrid_w7x.nc"`.
 Note that a slash (`/`) is hardcoded for now (sorry Windows users).
 
-If reading the namelist fails, lines assigning variables that are not in the `INDATA` namelist
+If reading the namelist fails, assignments to variables that are not in the `INDATA` namelist
 (e.g., `pt_type` from VMEC2000) are dropped with a warning and the namelist is read again.
+Other assignments on the same line are preserved, as are values continued across lines.
+The recovery path also accepts semicolons as assignment separators.
 
 Furthermore, after reading the namelist, a few fixups are done there as well:
 * If all entries in `niter_array` stayed at their default values of -1,
