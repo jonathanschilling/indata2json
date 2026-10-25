@@ -547,41 +547,94 @@ program indata2json
 
 contains
 
-  !> Copy iunit_in to iunit_out, dropping lines that assign a variable which is not
-  !> in the INDATA namelist, together with the continuation lines of its value.
+  !> Copy iunit_in to iunit_out, dropping unknown assignments and their values,
+  !> independently of line boundaries.
   subroutine drop_unknown_variables(iunit_in, iunit_out)
     integer, intent(in) :: iunit_in, iunit_out
     character(len=*), parameter :: name_chars = &
       'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
-    character(len=4096) :: buf, probe
-    character(len=:), allocatable :: name
+    character(len=4096) :: buf
+    character(len=:), allocatable :: text, name, probe
+    character :: quote, ch
     logical :: dropping
-    integer :: ios, ieq
+    integer :: ios, pos, first, name_first, name_last, depth, count
 
-    dropping = .false.
+    text = ''
     rewind(iunit_in)
     do
       read(iunit_in, '(a)', iostat=ios) buf
       if (ios .ne. 0) exit
-      ieq = index(buf, '=')
-      if (ieq .gt. 1) then
-        name = trim(adjustl(buf(1:ieq-1)))
-        if (index(name, '(') .gt. 0) name = trim(name(1:index(name, '(')-1))
-      else
-        name = ''
-      end if
-      if (len(name) .gt. 0 .and. verify(name, name_chars) .eq. 0) then
-        ! assignment: probe the name with a null value, which leaves variables unchanged
-        write(probe, '(a)') '&indata '//name//'= /'
-        read(probe, nml=indata, iostat=ios)
-        dropping = (ios .ne. 0)
-        if (dropping) write(0, '(a)') 'Warning: ignoring unknown INDATA variable '//name
-      else if (scan(adjustl(buf), '/&') .eq. 1) then
-        ! end of the namelist group
-        dropping = .false.
-      end if
-      if (.not. dropping) write(iunit_out, '(a)') trim(buf)
+      text = text//trim(buf)//new_line('a')
     end do
+
+    dropping = .false.
+    quote = ' '
+    depth = 0
+    name_first = 0
+    name_last = 0
+    first = 1
+    pos = 1
+    count = len(text)
+    do while (pos .le. count)
+      ch = text(pos:pos)
+      if (quote .ne. ' ') then
+        if (ch .eq. quote) then
+          if (pos .lt. count) then
+            if (text(pos+1:pos+1) .eq. quote) then
+              pos = pos + 2
+              cycle
+            end if
+          end if
+          quote = ' '
+        end if
+      else if (ch .eq. '!') then
+        ! Comments cannot introduce assignments or terminate the namelist.
+        do while (pos .le. count)
+          if (text(pos:pos) .eq. new_line('a')) exit
+          pos = pos + 1
+        end do
+      else if (ch .eq. "'" .or. ch .eq. '"') then
+        quote = ch
+        name_first = 0
+      else if (ch .eq. '(') then
+        depth = depth + 1
+      else if (ch .eq. ')') then
+        depth = max(0, depth - 1)
+      else if (depth .eq. 0) then
+        if (ch .eq. ';') then
+          ! Accept semicolon-separated assignments in the recovery path too.
+          text(pos:pos) = ','
+          name_first = 0
+        else if (index(name_chars, ch) .gt. 0) then
+          name_first = pos
+          do while (pos .le. count)
+            if (index(name_chars, text(pos:pos)) .eq. 0) exit
+            pos = pos + 1
+          end do
+          name_last = pos - 1
+          cycle
+        else if (ch .eq. '=' .and. name_first .gt. 0) then
+          if (.not. dropping) write(iunit_out, '(a)') text(first:name_first-1)
+          first = name_first
+          name = text(name_first:name_last)
+          ! A null value probes membership without changing the variable.
+          probe = '&indata '//name//'= /'
+          read(probe, nml=indata, iostat=ios)
+          dropping = (ios .ne. 0)
+          if (dropping) write(0, '(a)') 'Warning: ignoring unknown INDATA variable '//name
+          name_first = 0
+        else if (scan(ch, '/&$') .gt. 0) then
+          if (.not. dropping) write(iunit_out, '(a)') text(first:pos-1)
+          first = pos
+          dropping = .false.
+          name_first = 0
+        else if (scan(ch, ' '//achar(9)//achar(13)//new_line('a')) .eq. 0) then
+          name_first = 0
+        end if
+      end if
+      pos = pos + 1
+    end do
+    if (.not. dropping) write(iunit_out, '(a)') text(first:)
     rewind(iunit_out)
   end subroutine drop_unknown_variables
 
