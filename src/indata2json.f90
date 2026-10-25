@@ -294,6 +294,9 @@ program indata2json
   ! select constraint on iota or enclosed toroidal current profiles
   call add_int("ncurr", ncurr)
 
+  ! ai describes q = 1/iota, with the poloidal flux as radial coordinate
+  call add_logical("lrfp", lrfp)
+
   if (ncurr .eq. 0) then
     ! (initial guess for) iota profile
     piota_type_lc = piota_type
